@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="settings.page_title">Settings - Kabootar</title>
+  <link rel="icon" type="image/svg+xml" href="/static/kabootar.svg" />
+  <link rel="stylesheet" href="/static/style.css?v=20260322c" />
+  <link rel="stylesheet" href="/static/settings.css?v=20260322c" />
+</head>
+<body class="settings-page">
+  <div class="settings-shell">
+    <header class="settings-header">
+      <div class="settings-brand">
+        <img class="settings-logo" src="/static/kabootar.svg" alt="Kabootar" width="42" height="42" decoding="async" />
+        <div>
+        <h1 class="settings-title" data-i18n="settings.title">Client Settings</h1>
+        <p class="settings-subtitle" data-i18n="settings.subtitle">Manage channels, source mode and DNS/proxy configuration.</p>
+        </div>
+      </div>
+      <div class="settings-header-actions">
+        <button class="back-link" type="button" id="langToggle" data-i18n-title="common.change_language" title="Change language">FA</button>
+        <a href="/debug" class="back-link">Debug</a>
+        <a href="/" class="back-link" data-i18n="common.back">Back</a>
+      </div>
+    </header>
+
+    <form method="post" class="settings-form" novalidate id="settingsForm">
+      {% if message %}<div class="msg">{{ message }}</div>{% endif %}
+
+      <div class="settings-grid">
+        <section class="panel panel-wide">
+          <div class="panel-head">
+            <div class="panel-title" data-i18n="settings.channels_title">Channels (Shared)</div>
+            <div class="panel-sub" data-i18n="settings.channels_sub">The same channel list is used in both Direct and DNS modes.</div>
+          </div>
+          <div id="directChannelsList" class="list-box"></div>
+          <button type="button" class="btn-secondary" id="addDirectChannel" data-i18n="settings.add_channel">+ Add channel</button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div class="panel-title" data-i18n="settings.general_title">General</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="source_mode" data-i18n="settings.source_mode">Source mode</label>
+            <div class="mode-switch" id="sourceModeSwitch">
+              <button type="button" class="mode-btn" data-mode="direct" data-i18n="settings.mode_direct">Direct</button>
+              <button type="button" class="mode-btn" data-mode="dns" data-i18n="settings.mode_dns">DNS</button>
+            </div>
+            <select id="source_mode" class="select mode-hidden" name="source_mode">
+              <option value="direct" {% if settings.source_mode in ['direct', 'telegram'] %}selected{% endif %}>direct</option>
+              <option value="dns" {% if settings.source_mode=='dns' %}selected{% endif %}>dns</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="syncInterval" data-i18n="settings.sync_interval">Sync interval (minutes)</label>
+            <input id="syncInterval" class="input" name="sync_interval_minutes" value="{{ settings.sync_interval_minutes }}" inputmode="numeric" />
+          </div>
+        </section>
+
+        <section class="panel" id="directSection">
+          <div class="panel-head">
+            <div class="panel-title" data-i18n="settings.direct_title">Direct Mode</div>
+            <div class="panel-sub" data-i18n="settings.direct_sub">Configure proxies used for Telegram fetches.</div>
+          </div>
+          <div id="directProxiesList" class="list-box"></div>
+          <button type="button" class="btn-secondary" id="addDirectProxy" data-i18n="settings.add_proxy">+ Add proxy</button>
+        </section>
+
+        <section class="panel panel-wide" id="dnsSection">
+          <div class="panel-head">
+            <div class="panel-title" data-i18n="settings.dns_title">DNS Mode</div>
+            <div class="panel-sub" data-i18n="settings.dns_sub">Configure resolvers and domains.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" data-i18n="settings.dns_resolvers">DNS Resolvers</label>
+            <label class="toggle system-resolver-toggle">
+              <input
+                type="checkbox"
+                id="dnsUseSystem"
+                {% if settings.dns_use_system_resolver == '1' %}checked{% endif %}
+              />
+              <span data-i18n="settings.system_resolver">System</span>
+            </label>
+            <div id="dnsResolversList" class="list-box"></div>
+            <button type="button" class="btn-secondary" id="addDnsResolver" data-i18n="settings.add_dns_resolver">+ Add resolver</button>
+            <div class="sub" data-i18n="settings.dns_resolvers_hint">Each line: dns_server or dns_server:port</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="dnsQuerySize" data-i18n="settings.query_size">Query size (bytes)</label>
+            <input id="dnsQuerySize" class="input" name="dns_query_size" value="{{ settings.dns_query_size }}" inputmode="numeric" />
+          </div>
+
+          <div class="field">
+            <label class="label" data-i18n="settings.domains">Domains</label>
+            <div id="dnsDomainsList" class="list-box"></div>
+            <button type="button" class="btn-secondary" id="addDnsDomain" data-i18n="settings.add_domain">+ Add domain</button>
+            <div class="sub" data-i18n="settings.domains_hint">Each row: domain (required) + password (optional)</div>
+          </div>
+        </section>
+      </div>
+
+      <input type="hidden" name="direct_channels" id="direct_channels" value="{{ settings.direct_channels }}" />
+      <input type="hidden" name="direct_proxies" id="direct_proxies" value="{{ settings.direct_proxies }}" />
+      <input type="hidden" name="dns_resolvers" id="dns_resolvers" value="{{ settings.dns_resolvers }}" />
+      <input type="hidden" name="dns_domains" id="dns_domains" value="{{ settings.dns_domains }}" />
+
+      <input type="hidden" name="dns_use_system_resolver" id="dns_use_system_resolver" value="{{ settings.dns_use_system_resolver }}" />
+      <input type="hidden" name="dns_client_channels" value="{{ settings.dns_client_channels }}" />
+
+      <div class="actions sticky">
+        <button class="btn-primary" type="submit" data-i18n="settings.save_settings">Save settings</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="domainHealthModal" hidden>
+    <div class="modal-card">
+      <div class="modal-title" data-i18n="settings.health_dialog_title">Domain health</div>
+      <div id="domainHealthSummary" class="domain-health-summary"></div>
+      <pre id="domainHealthPayload" class="domain-health-payload"></pre>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="domainHealthClose" data-i18n="common.close">Close</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/static/settings.js?v=20260322c"></script>
+</body>
+</html>

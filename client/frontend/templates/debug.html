@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kabootar Debug</title>
+  <link rel="icon" type="image/svg+xml" href="/static/kabootar.svg" />
+  <link rel="stylesheet" href="/static/style.css?v=20260322a" />
+  <style>
+    body{overflow:auto}
+    .debug-shell{max-width:1280px;margin:0 auto;padding:18px 16px 28px}
+    .debug-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .debug-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .debug-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .debug-card{background:linear-gradient(180deg,#132130 0%, #0f1a27 100%);border:1px solid #274157;border-radius:14px;padding:12px;min-height:120px}
+    .debug-card.wide{grid-column:1 / -1}
+    .debug-title{font-weight:800;margin:0 0 10px}
+    .debug-list{display:flex;flex-direction:column;gap:8px}
+    .debug-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;border-bottom:1px dashed rgba(255,255,255,.08);padding-bottom:6px}
+    .debug-row:last-child{border-bottom:0;padding-bottom:0}
+    .debug-key{color:#98adbf}
+    .debug-value{word-break:break-word;text-align:left}
+    .debug-pre,.debug-events{margin:0;background:#0b1520;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;white-space:pre-wrap;word-break:break-word;max-height:420px;overflow:auto;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
+    .debug-events{display:flex;flex-direction:column;gap:8px}
+    .event-item{padding:8px 9px;border-radius:9px;background:#111d29;border:1px solid rgba(255,255,255,.06)}
+    .event-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:4px;font-size:12px}
+    .event-kind{font-weight:700}
+    .event-level{color:#7dd3fc}
+    .event-level.error{color:#ff9b9b}
+    .event-level.warning{color:#ffd97d}
+    .event-body{font-size:12px;color:#d5e7f5;white-space:pre-wrap}
+    .muted{color:#98adbf}
+    @media (max-width:900px){.debug-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="debug-shell">
+    <div class="debug-top">
+      <div>
+        <h1 class="debug-title">Debug Panel</h1>
+        <div class="muted">Live client runtime, sync events and log tail</div>
+      </div>
+      <div class="debug-actions">
+        <form method="post" action="/sync-now" style="display:inline">
+          <button type="submit" class="lite-btn">Sync now</button>
+        </form>
+        <a href="/settings" class="lite-btn">Settings</a>
+        <a href="/" class="lite-btn">Home</a>
+      </div>
+    </div>
+
+    <div class="debug-grid">
+      <section class="debug-card">
+        <h2 class="debug-title">Runtime</h2>
+        <div class="debug-list" id="runtimePanel"></div>
+      </section>
+
+      <section class="debug-card">
+        <h2 class="debug-title">Settings Snapshot</h2>
+        <div class="debug-list" id="settingsPanel"></div>
+      </section>
+
+      <section class="debug-card wide">
+        <h2 class="debug-title">Recent Events</h2>
+        <div class="debug-events" id="eventsPanel"></div>
+      </section>
+
+      <section class="debug-card">
+        <h2 class="debug-title">Resolver Health</h2>
+        <pre class="debug-pre" id="resolverPanel">loading...</pre>
+      </section>
+
+      <section class="debug-card">
+        <h2 class="debug-title">Domain Health</h2>
+        <pre class="debug-pre" id="domainPanel">loading...</pre>
+      </section>
+
+      <section class="debug-card wide">
+        <h2 class="debug-title">Log Tail</h2>
+        <pre class="debug-pre" id="logPanel">loading...</pre>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const fmt = (value) => {
+      if (value === null || value === undefined || value === '') return '-';
+      return String(value);
+    };
+
+    const fmtTime = (epoch) => {
+      const n = Number(epoch || 0);
+      if (!Number.isFinite(n) || n <= 0) return '-';
+      return new Date(n * 1000).toLocaleString();
+    };
+
+    const renderRows = (el, rows) => {
+      el.innerHTML = rows.map(([key, value]) => `
+        <div class="debug-row">
+          <div class="debug-key">${key}</div>
+          <div class="debug-value">${fmt(value)}</div>
+        </div>
+      `).join('');
+    };
+
+    const renderEvents = (events) => {
+      const panel = document.getElementById('eventsPanel');
+      if (!events.length) {
+        panel.innerHTML = '<div class="muted">no events yet</div>';
+        return;
+      }
+      panel.innerHTML = events.map((event) => {
+        const body = { ...event };
+        delete body.ts;
+        delete body.kind;
+        delete body.level;
+        return `
+          <div class="event-item">
+            <div class="event-head">
+              <div class="event-kind">${fmt(event.kind)}</div>
+              <div>
+                <span class="event-level ${fmt(event.level)}">${fmt(event.level)}</span>
+                <span class="muted"> - ${fmtTime(event.ts)}</span>
+              </div>
+            </div>
+            <div class="event-body">${fmt(JSON.stringify(body, null, 2))}</div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    async function refreshDebug() {
+      try {
+        const res = await fetch('/debug/state', { cache: 'no-store' });
+        const data = await res.json();
+
+        renderRows(document.getElementById('runtimePanel'), [
+          ['Started', fmtTime(data.runtime?.started_at)],
+          ['DB', data.runtime?.database_path],
+          ['Log', data.runtime?.log_path],
+          ['Log Size', data.runtime?.log_size],
+        ]);
+
+        renderRows(document.getElementById('settingsPanel'), [
+          ['Mode', data.settings?.source_mode],
+          ['Sync Interval', data.settings?.sync_interval_minutes],
+          ['Channels', data.settings?.channels_count],
+          ['Domains', data.settings?.domains_count],
+          ['Resolvers', data.settings?.resolvers_count],
+          ['System Resolver', data.settings?.use_system_resolver],
+        ]);
+
+        renderEvents(Array.isArray(data.events) ? data.events : []);
+        document.getElementById('resolverPanel').textContent = JSON.stringify(data.resolver_health || {}, null, 2);
+        document.getElementById('domainPanel').textContent = JSON.stringify(data.domain_health || {}, null, 2);
+        document.getElementById('logPanel').textContent = Array.isArray(data.log_tail) ? data.log_tail.join('\n') : '';
+      } catch (err) {
+        document.getElementById('logPanel').textContent = `debug_fetch_failed: ${err}`;
+      }
+    }
+
+    refreshDebug();
+    setInterval(refreshDebug, 2500);
+  </script>
+</body>
+</html>

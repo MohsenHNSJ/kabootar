@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="index.page_title">Kabootar</title>
+  <link rel="icon" type="image/svg+xml" href="/static/kabootar.svg" />
+  <link rel="stylesheet" href="/static/style.css?v=20260323a" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-title-row">
+        <div class="sidebar-brand">
+          <img class="brand-logo" src="/static/kabootar.svg" alt="Kabootar" width="22" height="22" decoding="async" />
+          <div class="sidebar-title" data-i18n="index.channels_title">Channels</div>
+        </div>
+        <div class="sidebar-actions">
+          <button type="button" class="lite-btn" id="syncNowBtn" data-i18n-title="index.update_now" title="Update now">↻</button>
+          <a class="lite-btn" href="/settings" data-i18n-title="index.settings" title="Settings">⚙</a>
+          <button class="lite-btn" id="liteBtn" data-i18n="index.lite_mode" data-i18n-title="index.lite_mode" title="Lite mode">Lite</button>
+          <button class="lite-btn" id="langToggle" data-i18n-title="common.change_language" title="Change language">FA</button>
+        </div>
+      </div>
+      <div class="sidebar-add-box">
+        <button type="button" class="lite-btn add-channel-btn" id="addChannelBtnBottom" data-i18n="index.add_channel">+ Add Channel</button>
+      </div>
+      {% if not channels %}
+      <div class="sidebar-empty" data-i18n="index.no_channels">No channels yet. Add your first channel.</div>
+      {% endif %}
+      {% for ch in channels %}
+      {% set latest_id = latest_by_channel.get(ch.id, 0) %}
+      <a
+        class="channel {% if selected == ch.source_url %}active{% endif %}"
+        href="/?channel={{ ch.source_url }}"
+        data-channel-key="{{ ch.source_url }}"
+        data-latest-id="{{ latest_id }}"
+      >
+        {% if ch.avatar_url %}
+        <img class="avatar" src="{{ ch.avatar_url }}" alt="{{ ch.title or ch.username }}" loading="lazy" referrerpolicy="no-referrer" />
+        {% else %}
+        <div class="avatar avatar-fallback" aria-hidden="true">{{ ((ch.username or '?')[:2]) | upper }}</div>
+        {% endif %}
+        <div class="channel-main">
+          <div class="name">{{ ch.title or ('@' ~ ch.username) }}</div>
+          <div class="url">@{{ ch.username }}</div>
+        </div>
+        <div class="unread-badge" hidden>0</div>
+      </a>
+      {% endfor %}
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+
+    <main class="chat" id="chat" data-selected="{{ selected or '' }}">
+      <div class="chat-header">
+        <button class="mobile-menu-btn" id="menuBtn" data-i18n-title="index.open_channels" aria-label="Open channels">☰</button>
+        {% if selected_channel %}
+        {% if selected_channel.avatar_url %}
+        <img class="header-avatar" src="{{ selected_channel.avatar_url }}" alt="{{ selected_channel.title or selected_channel.username }}" referrerpolicy="no-referrer" />
+        {% else %}
+        <div class="header-avatar avatar-fallback" aria-hidden="true">{{ ((selected_channel.username or '?')[:2]) | upper }}</div>
+        {% endif %}
+        <div class="header-meta">
+          <div class="header-title">{{ selected_channel.title or ('@' ~ selected_channel.username) }}</div>
+          <div class="header-sub">{{ selected_channel.source_url }}</div>
+        </div>
+        {% else %}
+        <div class="header-meta">
+          <div class="header-title" data-i18n="index.no_channel_selected">No channel selected</div>
+          <div class="header-sub" data-i18n="index.no_channel_selected_sub">Add a channel to start syncing.</div>
+        </div>
+        {% endif %}
+      </div>
+      {% if ui_msg %}
+      <div class="top-msg">{{ ui_msg }}</div>
+      {% endif %}
+
+      <div class="messages" id="messages">
+        {% if not channels %}
+        <div class="empty-state">
+          <h3 data-i18n="index.empty_title">Start by adding a channel</h3>
+          <p data-i18n="index.empty_desc">Paste @username or https://t.me/username.</p>
+          <button type="button" class="lite-btn add-channel-btn" id="addChannelBtnMain" data-i18n="index.add_channel">+ Add Channel</button>
+        </div>
+        {% endif %}
+        {% for m in messages %}
+        <div class="msg" id="msg-{{ m.message_id }}" data-message-id="{{ m.message_id }}">
+          {% if m.reply_to_message_id or m.reply_author or m.reply_text %}
+          {% if m.reply_to_message_id %}
+          <a class="reply-block" href="#msg-{{ m.reply_to_message_id }}">
+            <div class="reply-head">
+              <span class="reply-author">{{ m.reply_author or 'Reply' }}</span>
+              <span class="reply-id">#{{ m.reply_to_message_id }}</span>
+            </div>
+            <div class="reply-text" dir="auto">{{ m.reply_text or '...' }}</div>
+          </a>
+          {% else %}
+          <div class="reply-block">
+            <div class="reply-head">
+              <span class="reply-author">{{ m.reply_author or 'Reply' }}</span>
+            </div>
+            <div class="reply-text" dir="auto">{{ m.reply_text or '...' }}</div>
+          </div>
+          {% endif %}
+          {% endif %}
+          {% if m.photo_b64 %}
+          <div class="msg-photo-wrap">
+            <img
+              class="msg-photo"
+              src="data:{{ m.photo_mime or 'image/jpeg' }};base64,{{ m.photo_b64 }}"
+              alt="photo #{{ m.message_id }}"
+              loading="lazy"
+            />
+          </div>
+          {% endif %}
+          <div class="text" dir="auto">{{ m.text }}</div>
+          <div class="meta">
+            <span>#{{ m.message_id }}</span>
+            <span class="time" data-iso="{{ m.published_at }}">{{ m.published_at }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="addModal" hidden>
+    <div class="modal-card classic">
+      <div class="modal-title" data-i18n="index.add_channel_modal_title">Add Channel</div>
+      <form id="addModalForm" method="post" action="/channel/add">
+        <textarea
+          class="add-input"
+          name="channel"
+          rows="3"
+          data-i18n-placeholder="index.channel_placeholder"
+          placeholder="@id1,@id2 or one channel per line"
+        ></textarea>
+        <div class="add-form-error" hidden data-i18n="index.channel_required">Channel is required.</div>
+        <div class="add-form-loading" hidden>
+          <span class="spinner"></span>
+          <span data-i18n="index.request_in_progress">Request in progress...</span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="lite-btn" id="addModalCancel" data-i18n="common.cancel">Cancel</button>
+          <button type="submit" class="lite-btn" id="addModalSubmit" data-i18n="common.add">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="syncModal" hidden>
+    <div class="modal-card sync-modal-card">
+      <div class="sync-modal-head">
+        <div>
+          <div class="modal-title" data-i18n="index.sync_modal_title">Sync Progress</div>
+          <div class="sync-subtitle" id="syncModalPhase" data-i18n="index.sync_waiting">Waiting to start...</div>
+        </div>
+        <button type="button" class="lite-btn" id="syncModalClose" data-i18n="common.close">Close</button>
+      </div>
+      <div class="sync-progress-shell">
+        <div class="sync-progress-bar">
+          <div class="sync-progress-fill" id="syncProgressFill" style="width:0%"></div>
+        </div>
+        <div class="sync-progress-meta">
+          <span id="syncProgressPercent">0%</span>
+          <span id="syncEtaLabel">ETA -</span>
+        </div>
+      </div>
+      <div class="sync-chart-wrap">
+        <svg class="sync-chart" id="syncChart" viewBox="0 0 320 72" preserveAspectRatio="none" aria-hidden="true">
+          <polyline id="syncChartLine" fill="none" stroke="currentColor" stroke-width="3" points="0,72 320,72"></polyline>
+        </svg>
+      </div>
+      <div class="sync-stats-grid">
+        <div class="sync-stat">
+          <span class="sync-stat-label" data-i18n="index.sync_domains">Domains</span>
+          <strong id="syncDomainsStat">0 / 0</strong>
+        </div>
+        <div class="sync-stat">
+          <span class="sync-stat-label" data-i18n="index.sync_channels">Channels</span>
+          <strong id="syncChannelsStat">0 / 0</strong>
+        </div>
+        <div class="sync-stat">
+          <span class="sync-stat-label" data-i18n="index.sync_messages">Messages</span>
+          <strong id="syncMessagesStat">0 / 0</strong>
+        </div>
+        <div class="sync-stat">
+          <span class="sync-stat-label" data-i18n="index.sync_saved">Updated</span>
+          <strong id="syncSavedStat">0</strong>
+        </div>
+      </div>
+      <div class="sync-current-box">
+        <div class="sync-current-line">
+          <span class="sync-current-label" data-i18n="index.sync_current_domain">Current domain</span>
+          <strong id="syncCurrentDomain">-</strong>
+        </div>
+        <div class="sync-current-line">
+          <span class="sync-current-label" data-i18n="index.sync_current_channel">Current channel</span>
+          <strong id="syncCurrentChannel">-</strong>
+        </div>
+      </div>
+      <div class="sync-result-box" id="syncResultBox" hidden></div>
+    </div>
+  </div>
+
+  <div class="image-viewer" id="imageViewer" hidden>
+    <div class="image-viewer-stage" id="imageViewerStage">
+      <button
+        type="button"
+        class="image-viewer-close"
+        id="imageViewerClose"
+        data-i18n-title="common.close"
+        aria-label="Close"
+      >×</button>
+      <div class="image-viewer-shell" id="imageViewerShell">
+        <img class="image-viewer-image" id="imageViewerImage" alt="" />
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/static/index.js?v=20260323a"></script>
+</body>
+</html>

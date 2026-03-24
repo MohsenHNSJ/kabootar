@@ -1,0 +1,110 @@
+name: Kabootar Client Windows Build
+
+on:
+  push:
+    paths:
+      - "client/**"
+      - ".github/workflows/client-windows-build.yml"
+  pull_request:
+    paths:
+      - "client/**"
+      - ".github/workflows/client-windows-build.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      build_arm64:
+        description: "Build ARM64 on self-hosted Windows ARM64 runner"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-amd64:
+    name: Build Windows AMD64
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: powershell
+        working-directory: client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: "x64"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Prepare Kabootar Logo Assets
+        run: |
+          py -m pip install Pillow
+          py build\assets\prepare_logo_assets.py
+
+      - name: Build Desktop EXE (AMD64)
+        run: cmd /c build\windows\build_client.bat
+
+      - name: Prepare Release Asset (AMD64)
+        if: github.event_name == 'release'
+        run: Copy-Item dist\kabootar-client.exe dist\kabootar-client-windows-amd64.exe -Force
+
+      - name: Upload Artifact (AMD64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kabootar-client-windows-amd64
+          path: client/dist/kabootar-client.exe
+          if-no-files-found: error
+
+      - name: Publish Release Asset (AMD64)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: client/dist/kabootar-client-windows-amd64.exe
+
+  build-arm64:
+    name: Build Windows ARM64
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.build_arm64 == 'true'
+    runs-on: [self-hosted, Windows, ARM64]
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: powershell
+        working-directory: client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python (ARM64)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: "arm64"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Prepare Kabootar Logo Assets
+        run: |
+          py -m pip install Pillow
+          py build\assets\prepare_logo_assets.py
+
+      - name: Build Desktop EXE (ARM64)
+        run: cmd /c build\windows\build_client.bat
+
+      - name: Upload Artifact (ARM64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kabootar-client-windows-arm64
+          path: client/dist/kabootar-client.exe
+          if-no-files-found: error

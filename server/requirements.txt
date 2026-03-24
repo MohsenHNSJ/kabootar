@@ -1,0 +1,6 @@
+SQLAlchemy==2.0.36
+python-dotenv==1.0.1
+requests==2.32.3
+PySocks==1.7.1
+dnslib==0.9.25
+git+https://github.com/ppouria/persian-encoder.git@aafcdad87bef8df598c66ebbd4e827feb664c71e

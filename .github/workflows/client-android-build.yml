@@ -1,0 +1,86 @@
+name: Kabootar Client Android Build
+
+on:
+  push:
+    paths:
+      - "client/android/**"
+      - "client/build/android/**"
+      - "client/build/assets/**"
+      - ".github/workflows/client-android-build.yml"
+  pull_request:
+    paths:
+      - "client/android/**"
+      - "client/build/android/**"
+      - "client/build/assets/**"
+      - ".github/workflows/client-android-build.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      start_url:
+        description: "Web URL loaded by Android app WebView"
+        required: false
+        default: "https://example.com"
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Prepare Kabootar Logo Assets
+        run: |
+          python -m pip install Pillow
+          python client/build/assets/prepare_logo_assets.py
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Build Debug + Release APK
+        run: |
+          gradle -p client/android :app:assembleDebug :app:assembleRelease \
+            -PstartUrl="${{ github.event.inputs.start_url || 'https://example.com' }}"
+
+      - name: Prepare Universal APK
+        run: |
+          cp client/android/app/build/outputs/apk/release/app-release-unsigned.apk client/android/app/build/outputs/apk/release/kabootar-client-android-universal.apk
+
+      - name: Upload Universal APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kabootar-client-android-universal
+          path: client/android/app/build/outputs/apk/release/kabootar-client-android-universal.apk
+          if-no-files-found: error
+
+      - name: Publish Release Asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: client/android/app/build/outputs/apk/release/kabootar-client-android-universal.apk

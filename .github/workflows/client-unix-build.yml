@@ -1,0 +1,74 @@
+name: Kabootar Client Linux macOS Build
+
+on:
+  push:
+    paths:
+      - "client/**"
+      - ".github/workflows/client-unix-build.yml"
+  pull_request:
+    paths:
+      - "client/**"
+      - ".github/workflows/client-unix-build.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-unix:
+    name: Build ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: Linux x64
+            script: build/linux/build_client.sh
+            artifact_name: kabootar-client-linux-x64
+            artifact_path: client/dist/kabootar-client-linux-x64.tar.gz
+          - os: macos-13
+            label: macOS x64
+            script: build/macos/build_client.sh
+            artifact_name: kabootar-client-macos-x64
+            artifact_path: client/dist/kabootar-client-macos-x64.zip
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: client
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build Desktop Package
+        run: |
+          chmod +x "${{ matrix.script }}"
+          "${{ matrix.script }}"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_path }}
+          if-no-files-found: error
+
+      - name: Publish Release Asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact_path }}
