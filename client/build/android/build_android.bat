@@ -60,14 +60,31 @@ if errorlevel 1 (
 call "%RUN_GRADLE%" :app:clean :app:assembleDebug :app:assembleRelease -PstartUrl="%START_URL%"
 if errorlevel 1 exit /b 1
 
-set "UNIVERSAL_SOURCE=app\build\outputs\apk\release\app-release.apk"
+set "RELEASE_DIR=app\build\outputs\apk\release"
+set "UNIVERSAL_SOURCE=%RELEASE_DIR%\app-universal-release.apk"
+if not exist "%UNIVERSAL_SOURCE%" set "UNIVERSAL_SOURCE=%RELEASE_DIR%\app-release.apk"
+set "ARM64_SOURCE=%RELEASE_DIR%\app-arm64-v8a-release.apk"
+set "ARMV7_SOURCE=%RELEASE_DIR%\app-armeabi-v7a-release.apk"
+
 if not exist "%UNIVERSAL_SOURCE%" (
-  echo ERROR: signed release APK not found: %UNIVERSAL_SOURCE%
+  echo ERROR: universal release APK not found
   exit /b 1
 )
-copy /Y "%UNIVERSAL_SOURCE%" "app\build\outputs\apk\release\kabootar-client-android-universal.apk" >nul
+if not exist "%ARM64_SOURCE%" (
+  echo ERROR: arm64-v8a release APK not found
+  exit /b 1
+)
+if not exist "%ARMV7_SOURCE%" (
+  echo ERROR: armeabi-v7a release APK not found
+  exit /b 1
+)
+copy /Y "%UNIVERSAL_SOURCE%" "%RELEASE_DIR%\kabootar-client-android-universal.apk" >nul
+copy /Y "%ARM64_SOURCE%" "%RELEASE_DIR%\kabootar-client-android-arm64-v8a.apk" >nul
+copy /Y "%ARMV7_SOURCE%" "%RELEASE_DIR%\kabootar-client-android-armeabi-v7a.apk" >nul
 
 echo.
 echo Debug APK: app\build\outputs\apk\debug\app-debug.apk
-echo Universal APK: app\build\outputs\apk\release\kabootar-client-android-universal.apk
+echo Universal APK: %RELEASE_DIR%\kabootar-client-android-universal.apk
+echo ARM64 APK: %RELEASE_DIR%\kabootar-client-android-arm64-v8a.apk
+echo ARMv7 APK: %RELEASE_DIR%\kabootar-client-android-armeabi-v7a.apk
 endlocal

@@ -58,7 +58,7 @@ client/dist/
 server/dist/
 client/build/kabootar-client/
 client/build/telegram-mirror-client/
-client/build/linux/kabootar.png
+client/build/windows/kabootar.ico
 client/build/macos/kabootar.icns
 client/frontend/.cache/
 telegram-mirror-client.spec
@@ -70,6 +70,8 @@ client/android/.gradle/
 client/android/build/
 client/android/app/build/
 client/android/local.properties
+client/android/app/src/main/res/mipmap-*/ic_launcher.png
+client/android/app/src/main/res/mipmap-*/ic_launcher_round.png
 *.keystore
 *.jks
 

@@ -36,12 +36,29 @@ fi
 
 "${GRADLE_CMD}" :app:clean :app:assembleDebug :app:assembleRelease -PstartUrl="${START_URL}"
 
-UNIVERSAL_SOURCE="app/build/outputs/apk/release/app-release.apk"
+RELEASE_DIR="app/build/outputs/apk/release"
+UNIVERSAL_SOURCE="${RELEASE_DIR}/app-universal-release.apk"
+[[ -f "${UNIVERSAL_SOURCE}" ]] || UNIVERSAL_SOURCE="${RELEASE_DIR}/app-release.apk"
+ARM64_SOURCE="${RELEASE_DIR}/app-arm64-v8a-release.apk"
+ARMV7_SOURCE="${RELEASE_DIR}/app-armeabi-v7a-release.apk"
+
 if [[ ! -f "${UNIVERSAL_SOURCE}" ]]; then
-  echo "ERROR: signed release APK not found: ${UNIVERSAL_SOURCE}" >&2
+  echo "ERROR: universal release APK not found" >&2
   exit 1
 fi
-cp -f "${UNIVERSAL_SOURCE}" "app/build/outputs/apk/release/kabootar-client-android-universal.apk"
+if [[ ! -f "${ARM64_SOURCE}" ]]; then
+  echo "ERROR: arm64-v8a release APK not found" >&2
+  exit 1
+fi
+if [[ ! -f "${ARMV7_SOURCE}" ]]; then
+  echo "ERROR: armeabi-v7a release APK not found" >&2
+  exit 1
+fi
+cp -f "${UNIVERSAL_SOURCE}" "${RELEASE_DIR}/kabootar-client-android-universal.apk"
+cp -f "${ARM64_SOURCE}" "${RELEASE_DIR}/kabootar-client-android-arm64-v8a.apk"
+cp -f "${ARMV7_SOURCE}" "${RELEASE_DIR}/kabootar-client-android-armeabi-v7a.apk"
 
 echo "Debug APK: app/build/outputs/apk/debug/app-debug.apk"
-echo "Universal APK: app/build/outputs/apk/release/kabootar-client-android-universal.apk"
+echo "Universal APK: ${RELEASE_DIR}/kabootar-client-android-universal.apk"
+echo "ARM64 APK: ${RELEASE_DIR}/kabootar-client-android-arm64-v8a.apk"
+echo "ARMv7 APK: ${RELEASE_DIR}/kabootar-client-android-armeabi-v7a.apk"

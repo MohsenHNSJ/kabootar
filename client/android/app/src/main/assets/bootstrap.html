@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kabootar Android Build</title>
+  <title>Kabootar Android</title>
   <style>
     :root {
       color-scheme: dark;
@@ -13,6 +13,8 @@
       --text: #eef6ff;
       --muted: #9ab5cc;
       --accent: #7ad0ff;
+      --good: #7dffba;
+      --bad: #ff9f9f;
     }
     * { box-sizing: border-box; }
     body {
@@ -48,14 +50,164 @@
       color: var(--accent);
       font-family: Consolas, monospace;
     }
+    .stack {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(7, 19, 31, .9);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 16px;
+      outline: none;
+    }
+    .input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(122,208,255,.15);
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      background: rgba(18, 47, 71, .9);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .btn.primary {
+      background: linear-gradient(180deg, #1a5c8a, #0c4264);
+      border-color: #2f79ad;
+    }
+    .status {
+      min-height: 24px;
+      color: var(--good);
+      font-size: 14px;
+    }
+    .status.error {
+      color: var(--bad);
+    }
+    .hint {
+      font-size: 14px;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
   <main class="card">
-    <h1>Kabootar Android build is ready</h1>
-    <p>This APK does not bundle the local backend yet.</p>
-    <p>If you want this build to open a live Kabootar web endpoint, set <code>ANDROID_START_URL</code> in GitHub Actions or pass <code>-PstartUrl=...</code> in the local Gradle build.</p>
-    <p>Until then, the app opens this local page instead of shipping a broken hardcoded external URL.</p>
+    <h1>Kabootar Android</h1>
+    <p>This Android build opens a Kabootar web endpoint. Enter the address once and the app keeps it for the next launch.</p>
+    <div class="stack">
+      <div>
+        <label class="label" for="endpoint">Kabootar endpoint</label>
+        <input id="endpoint" class="input" type="url" inputmode="url" placeholder="https://example.com or http://192.168.1.10:8090">
+      </div>
+      <div class="row">
+        <button id="open" class="btn primary" type="button">Open endpoint</button>
+        <button id="default" class="btn" type="button">Use build default</button>
+        <button id="reset" class="btn" type="button">Reset saved endpoint</button>
+      </div>
+      <div id="status" class="status"></div>
+      <p class="hint">If you are testing against a desktop or server build, use its full http or https address here.</p>
+      <p class="hint">This Android package does not embed the local Python backend yet. It acts as a mobile launcher for a Kabootar web endpoint.</p>
+    </div>
   </main>
+  <script>
+    const endpointInput = document.getElementById('endpoint');
+    const statusNode = document.getElementById('status');
+    const bridge = window.KabootarAndroid || null;
+
+    const readSaved = () => {
+      try {
+        return bridge && typeof bridge.getSavedEndpoint === 'function' ? bridge.getSavedEndpoint() : '';
+      } catch (_) {
+        return '';
+      }
+    };
+
+    const readDefault = () => {
+      try {
+        return bridge && typeof bridge.getDefaultEndpoint === 'function' ? bridge.getDefaultEndpoint() : '';
+      } catch (_) {
+        return '';
+      }
+    };
+
+    const setStatus = (message, isError = false) => {
+      statusNode.textContent = message || '';
+      statusNode.classList.toggle('error', !!isError);
+    };
+
+    const normalize = (value) => {
+      const raw = (value || '').trim();
+      if (!raw) return '';
+      if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+      return '';
+    };
+
+    const openEndpoint = (value) => {
+      const url = normalize(value);
+      if (!url) {
+        setStatus('Enter a valid http or https address.', true);
+        return;
+      }
+      setStatus('Opening endpoint...');
+      if (bridge && typeof bridge.openEndpoint === 'function') {
+        bridge.openEndpoint(url);
+      } else {
+        location.href = url;
+      }
+    };
+
+    document.getElementById('open').addEventListener('click', () => openEndpoint(endpointInput.value));
+    document.getElementById('default').addEventListener('click', () => {
+      const fallback = readDefault();
+      if (!fallback) {
+        setStatus('This build has no default endpoint.', true);
+        return;
+      }
+      endpointInput.value = fallback;
+      openEndpoint(fallback);
+    });
+    document.getElementById('reset').addEventListener('click', () => {
+      if (bridge && typeof bridge.clearSavedEndpoint === 'function') {
+        bridge.clearSavedEndpoint();
+      }
+      endpointInput.value = readDefault();
+      setStatus('Saved endpoint cleared.');
+    });
+
+    endpointInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        openEndpoint(endpointInput.value);
+      }
+    });
+
+    const saved = readSaved();
+    const fallback = readDefault();
+    endpointInput.value = saved || fallback || '';
+    if (saved) {
+      setStatus('Saved endpoint loaded. Tap Open endpoint to continue.');
+    } else if (fallback) {
+      setStatus('Build default endpoint is ready.');
+    } else {
+      setStatus('Set an endpoint to start.');
+    }
+  </script>
 </body>
 </html>

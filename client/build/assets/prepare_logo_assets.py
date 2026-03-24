@@ -18,7 +18,6 @@ ROOT = Path(__file__).resolve().parents[3]
 SOURCE_SVG = Path(__file__).resolve().with_name("kabootar.svg")
 FRONTEND_STATIC = ROOT / "client" / "frontend" / "static"
 WINDOWS_ICON = ROOT / "client" / "build" / "windows" / "kabootar.ico"
-LINUX_ICON = ROOT / "client" / "build" / "linux" / "kabootar.png"
 MACOS_ICON = ROOT / "client" / "build" / "macos" / "kabootar.icns"
 ANDROID_RES = ROOT / "client" / "android" / "app" / "src" / "main" / "res"
 ANDROID_SIZES = {
@@ -145,11 +144,6 @@ def _save_windows_icon(master: Image.Image) -> None:
     master.save(WINDOWS_ICON, format="ICO", sizes=ico_sizes)
 
 
-def _save_linux_icon(master: Image.Image) -> None:
-    LINUX_ICON.parent.mkdir(parents=True, exist_ok=True)
-    master.resize((512, 512), Image.Resampling.LANCZOS).save(LINUX_ICON, format="PNG")
-
-
 def _save_macos_icon(master: Image.Image) -> None:
     MACOS_ICON.parent.mkdir(parents=True, exist_ok=True)
     icns_sizes = [(16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (512, 512), (1024, 1024)]
@@ -180,14 +174,13 @@ def main() -> None:
     master = _fit_square(raster, size=1024, inner_ratio=0.88)
 
     _save_windows_icon(master)
-    _save_linux_icon(master)
     _save_macos_icon(master)
     _save_android_icons(master)
 
     print(f"[brand] source: {SOURCE_SVG}")
     print(f"[brand] web: {FRONTEND_STATIC / 'kabootar.svg'}")
     print(f"[brand] windows icon: {WINDOWS_ICON}")
-    print(f"[brand] linux icon: {LINUX_ICON}")
+    print(f"[brand] linux icon: {SOURCE_SVG}")
     print(f"[brand] macos icon: {MACOS_ICON}")
     print(f"[brand] raster source: {raster_source}")
     print("[brand] android icons: mipmap-*/ic_launcher(.png|_round.png)")

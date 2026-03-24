@@ -39,7 +39,7 @@ stage_dir="dist/kabootar-client-linux-x64"
 rm -rf "$stage_dir"
 mkdir -p "$stage_dir"
 cp dist/kabootar-client "$stage_dir/"
-cp build/linux/kabootar.png "$stage_dir/"
+cp build/assets/kabootar.svg "$stage_dir/"
 cp README.md "$stage_dir/"
 tar -C dist -czf dist/kabootar-client-linux-x64.tar.gz kabootar-client-linux-x64
 
