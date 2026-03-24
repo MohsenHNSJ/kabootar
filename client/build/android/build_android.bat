@@ -3,12 +3,18 @@ setlocal EnableDelayedExpansion
 
 cd /d %~dp0\..\..
 
+set "PYTHON_CMD="
 where py >nul 2>nul
-if errorlevel 1 (
-  echo ERROR: Python launcher not found in PATH.
+if not errorlevel 1 set "PYTHON_CMD=py"
+if "%PYTHON_CMD%"=="" (
+  where python >nul 2>nul
+  if not errorlevel 1 set "PYTHON_CMD=python"
+)
+if "%PYTHON_CMD%"=="" (
+  echo ERROR: Python not found in PATH.
   exit /b 1
 )
-py build\assets\prepare_logo_assets.py
+"%PYTHON_CMD%" build\assets\prepare_logo_assets.py
 if errorlevel 1 (
   echo WARN: logo asset preparation failed. Using existing icon assets.
 )

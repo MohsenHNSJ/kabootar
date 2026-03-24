@@ -35,8 +35,8 @@ python3 -m PyInstaller \
   --add-data "alembic:alembic" \
   desktop_client.py
 
-rm -f dist/kabootar-client-macos-x64.zip
-ditto -c -k --sequesterRsrc --keepParent dist/kabootar-client.app dist/kabootar-client-macos-x64.zip
+rm -f dist/kabootar-client-macos.zip
+ditto -c -k --sequesterRsrc --keepParent dist/kabootar-client.app dist/kabootar-client-macos.zip
 
 echo
-echo "Build finished: dist/kabootar-client-macos-x64.zip"
+echo "Build finished: dist/kabootar-client-macos.zip"

@@ -50,7 +50,7 @@ bash build/macos/build_client.sh
 
 Output:
 
-- `dist/kabootar-client-macos-x64.zip`
+- `dist/kabootar-client-macos.zip`
 
 ## Android
 

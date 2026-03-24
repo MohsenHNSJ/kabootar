@@ -66,7 +66,7 @@ These links point to the main GitHub repository release channel.
 - [Latest release page](https://github.com/ppouria/kabootar/releases/latest)
 - [Windows AMD64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-windows-amd64.exe)
 - [Linux x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-linux-x64.tar.gz)
-- [macOS x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-macos-x64.zip)
+- [macOS](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-macos.zip)
 - [Android universal APK](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-android-universal.apk)
 
 ## Project Layout

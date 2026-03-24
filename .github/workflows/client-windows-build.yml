@@ -47,11 +47,44 @@ jobs:
 
       - name: Prepare Kabootar Logo Assets
         run: |
-          py -m pip install Pillow
-          py build\assets\prepare_logo_assets.py
+          python -m pip install Pillow
+          python build\assets\prepare_logo_assets.py
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "requirements.txt install failed, falling back to core dependencies"
+            python -m pip install Flask==3.0.3 SQLAlchemy==2.0.36 alembic==1.14.1 python-dotenv==1.0.1 requests==2.32.3 PySocks==1.7.1 feedparser==6.0.11 dnslib==0.9.25 dnspython==2.6.1
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip install pywebview pyinstaller
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build Frontend
+        run: |
+          npm --prefix frontend install
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm --prefix frontend run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build Desktop EXE (AMD64)
-        run: cmd /c build\windows\build_client.bat
+        run: |
+          $args = @(
+            "--noconfirm"
+            "--clean"
+            "--onefile"
+            "--windowed"
+            "--name", "kabootar-client"
+            "--icon", "build\windows\kabootar.ico"
+            "--add-data", "frontend\templates;frontend\templates"
+            "--add-data", "frontend\static;frontend\static"
+            "--add-data", "alembic;alembic"
+            "desktop_client.py"
+          )
+          python -m PyInstaller @args
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Prepare Release Asset (AMD64)
         if: github.event_name == 'release'
@@ -96,11 +129,44 @@ jobs:
 
       - name: Prepare Kabootar Logo Assets
         run: |
-          py -m pip install Pillow
-          py build\assets\prepare_logo_assets.py
+          python -m pip install Pillow
+          python build\assets\prepare_logo_assets.py
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "requirements.txt install failed, falling back to core dependencies"
+            python -m pip install Flask==3.0.3 SQLAlchemy==2.0.36 alembic==1.14.1 python-dotenv==1.0.1 requests==2.32.3 PySocks==1.7.1 feedparser==6.0.11 dnslib==0.9.25 dnspython==2.6.1
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip install pywebview pyinstaller
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build Frontend
+        run: |
+          npm --prefix frontend install
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm --prefix frontend run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build Desktop EXE (ARM64)
-        run: cmd /c build\windows\build_client.bat
+        run: |
+          $args = @(
+            "--noconfirm"
+            "--clean"
+            "--onefile"
+            "--windowed"
+            "--name", "kabootar-client"
+            "--icon", "build\windows\kabootar.ico"
+            "--add-data", "frontend\templates;frontend\templates"
+            "--add-data", "frontend\static;frontend\static"
+            "--add-data", "alembic;alembic"
+            "desktop_client.py"
+          )
+          python -m PyInstaller @args
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Upload Artifact (ARM64)
         uses: actions/upload-artifact@v4
