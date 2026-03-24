@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kabootar Android</title>
+  <title>Kabootar</title>
   <style>
     :root {
       color-scheme: dark;
@@ -46,34 +46,10 @@
       line-height: 1.7;
       color: var(--muted);
     }
-    code {
-      color: var(--accent);
-      font-family: Consolas, monospace;
-    }
     .stack {
       display: grid;
       gap: 14px;
       margin-top: 18px;
-    }
-    .label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .input {
-      width: 100%;
-      border: 1px solid var(--line);
-      background: rgba(7, 19, 31, .9);
-      color: var(--text);
-      border-radius: 14px;
-      padding: 14px 16px;
-      font-size: 16px;
-      outline: none;
-    }
-    .input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(122,208,255,.15);
     }
     .row {
       display: flex;
@@ -94,9 +70,10 @@
       border-color: #2f79ad;
     }
     .status {
-      min-height: 24px;
+      min-height: 42px;
       color: var(--good);
-      font-size: 14px;
+      font-size: 15px;
+      line-height: 1.7;
     }
     .status.error {
       color: var(--bad);
@@ -105,109 +82,109 @@
       font-size: 14px;
       color: var(--muted);
     }
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 3px solid rgba(122, 208, 255, .18);
+      border-top-color: var(--accent);
+      animation: spin .85s linear infinite;
+      margin-bottom: 4px;
+    }
+    .state-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
   <main class="card">
-    <h1>Kabootar Android</h1>
-    <p>This Android build opens a Kabootar web endpoint. Enter the address once and the app keeps it for the next launch.</p>
+    <h1>Kabootar</h1>
+    <p>This build starts the Kabootar backend on the device and then opens the local web app.</p>
     <div class="stack">
-      <div>
-        <label class="label" for="endpoint">Kabootar endpoint</label>
-        <input id="endpoint" class="input" type="url" inputmode="url" placeholder="https://example.com or http://192.168.1.10:8090">
+      <div class="state-row">
+        <div class="spinner" id="spinner"></div>
+        <div>
+          <div id="state" class="status">Starting local backend...</div>
+          <p class="hint" id="detail">The first launch may take a bit longer while Python starts.</p>
+        </div>
       </div>
       <div class="row">
-        <button id="open" class="btn primary" type="button">Open endpoint</button>
-        <button id="default" class="btn" type="button">Use build default</button>
-        <button id="reset" class="btn" type="button">Reset saved endpoint</button>
+        <button id="open" class="btn primary" type="button">Open local app</button>
+        <button id="retry" class="btn" type="button">Retry backend</button>
       </div>
-      <div id="status" class="status"></div>
-      <p class="hint">If you are testing against a desktop or server build, use its full http or https address here.</p>
-      <p class="hint">This Android package does not embed the local Python backend yet. It acts as a mobile launcher for a Kabootar web endpoint.</p>
+      <p class="hint">Everything should stay inside the APK now: local backend on <code>127.0.0.1</code>, then the same web UI inside WebView.</p>
     </div>
   </main>
   <script>
-    const endpointInput = document.getElementById('endpoint');
-    const statusNode = document.getElementById('status');
+    const stateNode = document.getElementById('state');
+    const detailNode = document.getElementById('detail');
+    const spinner = document.getElementById('spinner');
     const bridge = window.KabootarAndroid || null;
+    let redirecting = false;
 
-    const readSaved = () => {
+    const getState = () => {
       try {
-        return bridge && typeof bridge.getSavedEndpoint === 'function' ? bridge.getSavedEndpoint() : '';
+        return bridge && typeof bridge.getBackendState === 'function' ? bridge.getBackendState() : 'unknown';
+      } catch (_) {
+        return 'unknown';
+      }
+    };
+
+    const getMessage = () => {
+      try {
+        return bridge && typeof bridge.getBackendMessage === 'function' ? bridge.getBackendMessage() : '';
       } catch (_) {
         return '';
       }
     };
 
-    const readDefault = () => {
+    const getUrl = () => {
       try {
-        return bridge && typeof bridge.getDefaultEndpoint === 'function' ? bridge.getDefaultEndpoint() : '';
+        return bridge && typeof bridge.getBackendUrl === 'function' ? bridge.getBackendUrl() : '';
       } catch (_) {
         return '';
       }
     };
 
-    const setStatus = (message, isError = false) => {
-      statusNode.textContent = message || '';
-      statusNode.classList.toggle('error', !!isError);
-    };
-
-    const normalize = (value) => {
-      const raw = (value || '').trim();
-      if (!raw) return '';
-      if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-      return '';
-    };
-
-    const openEndpoint = (value) => {
-      const url = normalize(value);
-      if (!url) {
-        setStatus('Enter a valid http or https address.', true);
-        return;
-      }
-      setStatus('Opening endpoint...');
-      if (bridge && typeof bridge.openEndpoint === 'function') {
-        bridge.openEndpoint(url);
+    const applyState = () => {
+      const state = getState();
+      const message = getMessage() || 'Starting local backend...';
+      stateNode.textContent = message;
+      stateNode.classList.toggle('error', state === 'error');
+      spinner.style.display = state === 'ready' ? 'none' : 'block';
+      if (state === 'ready') {
+        detailNode.textContent = 'Local backend is ready. Opening the Kabootar UI.';
+        if (!redirecting && bridge && typeof bridge.openLocalBackend === 'function') {
+          redirecting = true;
+          bridge.openLocalBackend();
+        }
+      } else if (state === 'error') {
+        detailNode.textContent = 'The embedded backend did not start cleanly. Retry it from here.';
       } else {
-        location.href = url;
+        detailNode.textContent = 'The first launch may take a bit longer while Python starts.';
       }
     };
 
-    document.getElementById('open').addEventListener('click', () => openEndpoint(endpointInput.value));
-    document.getElementById('default').addEventListener('click', () => {
-      const fallback = readDefault();
-      if (!fallback) {
-        setStatus('This build has no default endpoint.', true);
-        return;
+    document.getElementById('open').addEventListener('click', () => {
+      if (bridge && typeof bridge.openLocalBackend === 'function') {
+        bridge.openLocalBackend();
       }
-      endpointInput.value = fallback;
-      openEndpoint(fallback);
     });
-    document.getElementById('reset').addEventListener('click', () => {
-      if (bridge && typeof bridge.clearSavedEndpoint === 'function') {
-        bridge.clearSavedEndpoint();
-      }
-      endpointInput.value = readDefault();
-      setStatus('Saved endpoint cleared.');
-    });
-
-    endpointInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        openEndpoint(endpointInput.value);
+    document.getElementById('retry').addEventListener('click', () => {
+      redirecting = false;
+      if (bridge && typeof bridge.retryBackend === 'function') {
+        bridge.retryBackend();
       }
     });
 
-    const saved = readSaved();
-    const fallback = readDefault();
-    endpointInput.value = saved || fallback || '';
-    if (saved) {
-      setStatus('Saved endpoint loaded. Tap Open endpoint to continue.');
-    } else if (fallback) {
-      setStatus('Build default endpoint is ready.');
-    } else {
-      setStatus('Set an endpoint to start.');
-    }
+    applyState();
+    setInterval(applyState, 900);
   </script>
 </body>
 </html>

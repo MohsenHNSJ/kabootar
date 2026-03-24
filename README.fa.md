@@ -66,10 +66,10 @@
 این لینک ها مستقیم به آخرین ریلیز وصل میشوند.
 
 - [صفحه آخرین ریلیز](https://github.com/ppouria/kabootar/releases/latest)
-- [نسخه ویندوز AMD64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-windows-amd64.exe)
-- [نسخه لینوکس x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-linux-x64.tar.gz)
-- [نسخه macOS](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-macos.zip)
-- [نسخه اندروید universal](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-client-android-universal.apk)
+- [نسخه ویندوز AMD64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-amd64.exe)
+- [نسخه لینوکس x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-linux-x64.tar.gz)
+- [نسخه macOS](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-macos.zip)
+- [نسخه اندروید universal](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-android-universal.apk)
 
 ## تلگرام
 

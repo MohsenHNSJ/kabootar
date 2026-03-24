@@ -29,20 +29,20 @@ python3 -m PyInstaller \
   --clean \
   --onefile \
   --windowed \
-  --name kabootar-client \
+  --name kabootar \
   --add-data "../version.properties:." \
   --add-data "frontend/templates:frontend/templates" \
   --add-data "frontend/static:frontend/static" \
   --add-data "alembic:alembic" \
   desktop_client.py
 
-stage_dir="dist/kabootar-client-linux-x64"
+stage_dir="dist/kabootar-linux-x64"
 rm -rf "$stage_dir"
 mkdir -p "$stage_dir"
-cp dist/kabootar-client "$stage_dir/"
+cp dist/kabootar "$stage_dir/"
 cp build/assets/kabootar.svg "$stage_dir/"
 cp README.md "$stage_dir/"
-tar -C dist -czf dist/kabootar-client-linux-x64.tar.gz kabootar-client-linux-x64
+tar -C dist -czf dist/kabootar-linux-x64.tar.gz kabootar-linux-x64
 
 echo
-echo "Build finished: dist/kabootar-client-linux-x64.tar.gz"
+echo "Build finished: dist/kabootar-linux-x64.tar.gz"

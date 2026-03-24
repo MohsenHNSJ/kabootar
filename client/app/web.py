@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import secrets
 import sys
 import threading
@@ -559,6 +560,22 @@ def _save_domain_health(domain: str, status: dict) -> None:
 
 
 def _resolve_frontend_dirs() -> tuple[Path, Path]:
+    override_template = (os.getenv("KABOOTAR_TEMPLATE_DIR", "") or "").strip()
+    override_static = (os.getenv("KABOOTAR_STATIC_DIR", "") or "").strip()
+    if override_template and override_static:
+        tpl = Path(override_template).expanduser().resolve()
+        sta = Path(override_static).expanduser().resolve()
+        if tpl.exists() and sta.exists():
+            return tpl, sta
+
+    override_root = (os.getenv("KABOOTAR_FRONTEND_ROOT", "") or "").strip()
+    if override_root:
+        root = Path(override_root).expanduser().resolve()
+        tpl = root / "templates"
+        sta = root / "static"
+        if tpl.exists() and sta.exists():
+            return tpl, sta
+
     here = Path(__file__).resolve().parent.parent
     candidates: list[Path] = [here]
 

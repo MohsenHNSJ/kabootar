@@ -1,9 +1,13 @@
+import com.chaquo.python.ChaquopyExtension
 import java.util.Properties
+import org.gradle.kotlin.dsl.configure
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+apply(plugin = "com.chaquo.python")
 
 val versionProps = Properties()
 val versionFile = rootDir.parentFile.parentFile.resolve("version.properties")
@@ -13,12 +17,16 @@ if (versionFile.isFile) {
 
 val appVersionName = (versionProps.getProperty("version_name") ?: "0.1.1").trim().ifBlank { "0.1.1" }
 val appVersionCode = ((versionProps.getProperty("version_code") ?: "2").trim().toIntOrNull() ?: 2).coerceAtLeast(1)
-
-val startUrlProp = (project.findProperty("startUrl") as String?)?.trim()
-val startUrlEnv = System.getenv("START_URL")?.trim()
-val startUrlDefault = "file:///android_asset/bootstrap.html"
-val startUrlRaw = (startUrlProp ?: startUrlEnv ?: startUrlDefault).ifBlank { startUrlDefault }
-val startUrlEscaped = startUrlRaw.replace("\\", "\\\\").replace("\"", "\\\"")
+val appName = (versionProps.getProperty("app_name") ?: "Kabootar").trim().ifBlank { "Kabootar" }
+val releaseChannel = (versionProps.getProperty("release_channel") ?: "stable").trim().ifBlank { "stable" }
+val androidBackendPort = ((project.findProperty("kabootarLocalPort") as String?)?.trim()?.toIntOrNull()
+    ?: System.getenv("KABOOTAR_LOCAL_PORT")?.trim()?.toIntOrNull()
+    ?: 18765).coerceIn(1024, 65535)
+val buildPythonCommand = if (System.getProperty("os.name").lowercase().contains("windows")) {
+    listOf("py", "-3.13")
+} else {
+    listOf("python3")
+}
 
 val releaseKeystoreFile = ((project.findProperty("kabootarKeystoreFile") as String?)?.trim() ?: System.getenv("KABOOTAR_KEYSTORE_FILE")?.trim()).orEmpty()
 val releaseKeystorePassword = ((project.findProperty("kabootarKeystorePassword") as String?)?.trim() ?: System.getenv("KABOOTAR_KEYSTORE_PASSWORD")?.trim()).orEmpty()
@@ -28,6 +36,31 @@ val hasReleaseSigning = releaseKeystoreFile.isNotBlank() &&
     releaseKeystorePassword.isNotBlank() &&
     releaseKeyAlias.isNotBlank() &&
     releaseKeyPassword.isNotBlank()
+
+val generatedPythonDir = layout.buildDirectory.dir("generated/python-src/main")
+val syncKabootarPython by tasks.registering(Sync::class) {
+    into(generatedPythonDir)
+    from("../../app") {
+        into("app")
+        include("**/*.py")
+    }
+    from("../../vendor/python/persian_encoder") {
+        into("persian_encoder")
+    }
+    from("../../frontend/templates") {
+        into("kabootar_android_assets/frontend/templates")
+    }
+    from("../../frontend/static") {
+        into("kabootar_android_assets/frontend/static")
+    }
+    doLast {
+        val pkg = generatedPythonDir.get().file("kabootar_android_assets/__init__.py").asFile
+        pkg.parentFile.mkdirs()
+        if (!pkg.exists()) {
+            pkg.writeText("", Charsets.UTF_8)
+        }
+    }
+}
 
 android {
     namespace = "com.kabootar.client"
@@ -46,13 +79,18 @@ android {
 
     defaultConfig {
         applicationId = "com.kabootar.client"
-        minSdk = 21
+        minSdk = 24
         targetSdk = 35
         versionCode = appVersionCode
         versionName = appVersionName
-        buildConfigField("String", "START_URL", "\"$startUrlEscaped\"")
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
         buildConfigField("String", "APP_VERSION_NAME", "\"${appVersionName.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
         buildConfigField("int", "APP_VERSION_CODE", appVersionCode.toString())
+        buildConfigField("String", "APP_NAME", "\"${appName.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
+        buildConfigField("String", "RELEASE_CHANNEL", "\"${releaseChannel.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
+        buildConfigField("int", "LOCAL_BACKEND_PORT", androidBackendPort.toString())
     }
 
     buildTypes {
@@ -73,7 +111,7 @@ android {
         abi {
             isEnable = true
             reset()
-            include("armeabi-v7a", "arm64-v8a")
+            include("arm64-v8a", "x86_64")
             isUniversalApk = true
         }
     }
@@ -95,6 +133,33 @@ android {
         checkReleaseBuilds = false
         abortOnError = false
     }
+}
+
+configure<ChaquopyExtension> {
+    defaultConfig {
+        version = "3.13"
+        buildPython(*buildPythonCommand.toTypedArray())
+        pip {
+            install("Flask==3.0.3")
+            install("SQLAlchemy==2.0.36")
+            install("python-dotenv==1.0.1")
+            install("requests==2.32.3")
+            install("PySocks==1.7.1")
+            install("feedparser==6.0.11")
+            install("dnslib==0.9.25")
+            install("dnspython==2.6.1")
+        }
+    }
+    sourceSets {
+        getByName("main") {
+            srcDir("src/main/python")
+            srcDir(generatedPythonDir.get().asFile)
+        }
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(syncKabootarPython)
 }
 
 dependencies {

@@ -40,7 +40,7 @@ if errorlevel 1 exit /b 1
   --clean ^
   --onefile ^
   --windowed ^
-  --name kabootar-client ^
+  --name kabootar ^
   --icon "build\windows\kabootar.ico" ^
   --add-data "..\version.properties;." ^
   --add-data "frontend\templates;frontend\templates" ^
@@ -50,5 +50,5 @@ if errorlevel 1 exit /b 1
 if errorlevel 1 exit /b 1
 
 echo.
-echo Build finished: dist\kabootar-client.exe
+echo Build finished: dist\kabootar.exe
 endlocal

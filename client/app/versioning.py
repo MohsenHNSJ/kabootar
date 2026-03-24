@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import asdict, dataclass
 from functools import lru_cache
@@ -78,6 +79,23 @@ def _load_properties() -> tuple[dict[str, str], str]:
 
 @lru_cache(maxsize=1)
 def app_meta() -> AppMeta:
+    env_app_name = (os.getenv("KABOOTAR_APP_NAME", "") or "").strip()
+    env_version_name = (os.getenv("KABOOTAR_VERSION_NAME", "") or "").strip()
+    env_version_code_raw = (os.getenv("KABOOTAR_VERSION_CODE", "") or "").strip()
+    env_release_channel = (os.getenv("KABOOTAR_RELEASE_CHANNEL", "") or "").strip()
+    if env_app_name or env_version_name or env_version_code_raw or env_release_channel:
+        try:
+            env_version_code = int(env_version_code_raw or _DEFAULT_VERSION_CODE)
+        except Exception:
+            env_version_code = _DEFAULT_VERSION_CODE
+        return AppMeta(
+            app_name=env_app_name or _DEFAULT_APP_NAME,
+            version_name=env_version_name or _DEFAULT_VERSION_NAME,
+            version_code=max(1, env_version_code),
+            release_channel=env_release_channel or _DEFAULT_RELEASE_CHANNEL,
+            source_path="env",
+        )
+
     values, source_path = _load_properties()
     try:
         version_code = int((values.get("version_code") or "").strip())

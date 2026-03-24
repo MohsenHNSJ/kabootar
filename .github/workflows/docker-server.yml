@@ -1,4 +1,4 @@
-name: Docker Server
+name: Docker Kabootar DNS
 
 on:
   push:
@@ -19,7 +19,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/kabootar-server
+  IMAGE_NAME: ${{ github.repository_owner }}/kabootar-dns
 
 jobs:
   build-server-image:
@@ -62,7 +62,7 @@ jobs:
           provenance: false
           sbom: false
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
-          outputs: type=docker,dest=/tmp/kabootar-server-image.tar
+          outputs: type=docker,dest=/tmp/kabootar-dns-image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -70,8 +70,8 @@ jobs:
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v4
         with:
-          name: kabootar-server-docker-image
-          path: /tmp/kabootar-server-image.tar
+          name: kabootar-dns-docker-image
+          path: /tmp/kabootar-dns-image.tar
           if-no-files-found: error
 
       - name: Build and push release image

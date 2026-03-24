@@ -1,4 +1,4 @@
-name: Docker Client
+name: Docker Kabootar Web
 
 on:
   push:
@@ -19,7 +19,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/kabootar-client
+  IMAGE_NAME: ${{ github.repository_owner }}/kabootar-web
 
 jobs:
   build-client-image:
@@ -62,7 +62,7 @@ jobs:
           provenance: false
           sbom: false
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
-          outputs: type=docker,dest=/tmp/kabootar-client-image.tar
+          outputs: type=docker,dest=/tmp/kabootar-web-image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -70,8 +70,8 @@ jobs:
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v4
         with:
-          name: kabootar-client-docker-image
-          path: /tmp/kabootar-client-image.tar
+          name: kabootar-web-docker-image
+          path: /tmp/kabootar-web-image.tar
           if-no-files-found: error
 
       - name: Build and push release image

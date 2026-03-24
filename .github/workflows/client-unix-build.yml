@@ -1,4 +1,4 @@
-name: Kabootar Client Linux macOS Build
+name: Kabootar Linux macOS Build
 
 on:
   push:
@@ -29,12 +29,12 @@ jobs:
         include:
           - os: ubuntu-latest
             label: Linux x64
-            artifact_name: kabootar-client-linux-x64
-            artifact_path: client/dist/kabootar-client-linux-x64.tar.gz
+            artifact_name: kabootar-linux-x64
+            artifact_path: client/dist/kabootar-linux-x64.tar.gz
           - os: macos-latest
             label: macOS
-            artifact_name: kabootar-client-macos
-            artifact_path: client/dist/kabootar-client-macos.zip
+            artifact_name: kabootar-macos
+            artifact_path: client/dist/kabootar-macos.zip
 
     defaults:
       run:
@@ -92,19 +92,19 @@ jobs:
             --clean \
             --onefile \
             --windowed \
-            --name kabootar-client \
+            --name kabootar \
             --add-data "../version.properties:." \
             --add-data "frontend/templates:frontend/templates" \
             --add-data "frontend/static:frontend/static" \
             --add-data "alembic:alembic" \
             desktop_client.py
-          stage_dir="dist/kabootar-client-linux-x64"
+          stage_dir="dist/kabootar-linux-x64"
           rm -rf "$stage_dir"
           mkdir -p "$stage_dir"
-          cp dist/kabootar-client "$stage_dir/"
+          cp dist/kabootar "$stage_dir/"
           cp build/assets/kabootar.svg "$stage_dir/"
           cp README.md "$stage_dir/"
-          tar -C dist -czf dist/kabootar-client-linux-x64.tar.gz kabootar-client-linux-x64
+          tar -C dist -czf dist/kabootar-linux-x64.tar.gz kabootar-linux-x64
 
       - name: Build macOS Package
         if: matrix.os == 'macos-latest'
@@ -113,15 +113,15 @@ jobs:
             --noconfirm \
             --clean \
             --windowed \
-            --name kabootar-client \
+            --name kabootar \
             --icon build/macos/kabootar.icns \
             --add-data "../version.properties:." \
             --add-data "frontend/templates:frontend/templates" \
             --add-data "frontend/static:frontend/static" \
             --add-data "alembic:alembic" \
             desktop_client.py
-          rm -f dist/kabootar-client-macos.zip
-          ditto -c -k --sequesterRsrc --keepParent dist/kabootar-client.app dist/kabootar-client-macos.zip
+          rm -f dist/kabootar-macos.zip
+          ditto -c -k --sequesterRsrc --keepParent dist/kabootar.app dist/kabootar-macos.zip
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

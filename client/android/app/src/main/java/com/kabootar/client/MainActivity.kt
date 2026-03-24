@@ -1,8 +1,8 @@
 package com.kabootar.client
 
 import android.annotation.SuppressLint
-import android.webkit.JavascriptInterface
 import android.os.Bundle
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceError
@@ -11,15 +11,25 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.chaquo.python.Python
+import com.chaquo.python.android.AndroidPlatform
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        private const val PREFS_NAME = "kabootar"
-        private const val PREF_ENDPOINT = "endpoint"
         private const val BOOTSTRAP_URL = "file:///android_asset/bootstrap.html"
     }
 
     private lateinit var webView: WebView
+    private val backendExecutor = Executors.newSingleThreadExecutor()
+    @Volatile
+    private var backendState = "idle"
+    @Volatile
+    private var backendMessage = "Local backend has not started yet."
+    @Volatile
+    private var backendUrl = "http://127.0.0.1:${BuildConfig.LOCAL_BACKEND_PORT}"
+    @Volatile
+    private var backendStarting = false
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,9 +56,11 @@ class MainActivity : AppCompatActivity() {
                 if (!failingUrl.isNullOrBlank() && failingUrl.startsWith(BOOTSTRAP_URL)) {
                     return
                 }
+                backendState = "error"
+                backendMessage = "Unable to load the local Kabootar endpoint."
                 Toast.makeText(
                     this@MainActivity,
-                    "Unable to load endpoint",
+                    "Unable to load local backend",
                     Toast.LENGTH_LONG,
                 ).show()
                 loadBootstrap()
@@ -76,72 +88,101 @@ class MainActivity : AppCompatActivity() {
         }
 
         loadBootstrap()
+        startLocalBackend(false)
     }
 
     private fun loadBootstrap() {
         webView.loadUrl(BOOTSTRAP_URL)
     }
 
-    private fun normalizedEndpoint(raw: String?): String {
-        val value = (raw ?: "").trim()
-        if (value.startsWith("https://") || value.startsWith("http://")) {
-            return value
+    private fun openLocalBackend() {
+        if (backendUrl.isNotBlank()) {
+            webView.loadUrl(backendUrl)
         }
-        return ""
     }
 
-    private fun getSavedEndpoint(): String {
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        return normalizedEndpoint(prefs.getString(PREF_ENDPOINT, ""))
-    }
-
-    private fun getDefaultEndpoint(): String {
-        return normalizedEndpoint(BuildConfig.START_URL)
-    }
-
-    private fun saveEndpoint(value: String) {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-            .edit()
-            .putString(PREF_ENDPOINT, value)
-            .apply()
-    }
-
-    private fun clearEndpoint() {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-            .edit()
-            .remove(PREF_ENDPOINT)
-            .apply()
-    }
-
-    private fun openEndpoint(raw: String) {
-        val url = normalizedEndpoint(raw)
-        if (url.isBlank()) {
-            Toast.makeText(this, "Enter a valid http or https address", Toast.LENGTH_LONG).show()
+    private fun startLocalBackend(force: Boolean) {
+        if (backendStarting) {
             return
         }
-        saveEndpoint(url)
-        webView.loadUrl(url)
+        backendStarting = true
+        backendState = "starting"
+        backendMessage = if (force) {
+            "Retrying local backend startup..."
+        } else {
+            "Starting local backend..."
+        }
+
+        backendExecutor.execute {
+            try {
+                if (!Python.isStarted()) {
+                    Python.start(AndroidPlatform(applicationContext))
+                }
+                val runtime = Python.getInstance().getModule("kabootar_android.runtime")
+                val url = runtime.callAttr(
+                    "start_backend",
+                    filesDir.absolutePath,
+                    cacheDir.absolutePath,
+                    BuildConfig.LOCAL_BACKEND_PORT,
+                    BuildConfig.APP_NAME,
+                    BuildConfig.APP_VERSION_NAME,
+                    BuildConfig.APP_VERSION_CODE,
+                    BuildConfig.RELEASE_CHANNEL,
+                ).toString()
+
+                backendUrl = url
+                backendState = "ready"
+                backendMessage = "Local backend is ready."
+
+                runOnUiThread {
+                    openLocalBackend()
+                }
+            } catch (exc: Exception) {
+                backendState = "error"
+                backendMessage = exc.message ?: "Unknown backend startup error"
+                runOnUiThread {
+                    loadBootstrap()
+                    Toast.makeText(this, "Local backend failed to start", Toast.LENGTH_LONG).show()
+                }
+            } finally {
+                backendStarting = false
+            }
+        }
     }
 
     inner class AndroidBridge {
         @JavascriptInterface
-        fun getSavedEndpoint(): String = this@MainActivity.getSavedEndpoint()
+        fun getBackendState(): String = backendState
 
         @JavascriptInterface
-        fun getDefaultEndpoint(): String = this@MainActivity.getDefaultEndpoint()
+        fun getBackendMessage(): String = backendMessage
 
         @JavascriptInterface
-        fun openEndpoint(raw: String) {
+        fun getBackendUrl(): String = backendUrl
+
+        @JavascriptInterface
+        fun openLocalBackend() {
             runOnUiThread {
-                this@MainActivity.openEndpoint(raw)
+                if (backendState == "ready") {
+                    this@MainActivity.openLocalBackend()
+                } else {
+                    this@MainActivity.startLocalBackend(true)
+                }
             }
         }
 
         @JavascriptInterface
-        fun clearSavedEndpoint() {
+        fun retryBackend() {
             runOnUiThread {
-                this@MainActivity.clearEndpoint()
                 this@MainActivity.loadBootstrap()
+                this@MainActivity.startLocalBackend(true)
+            }
+        }
+
+        @JavascriptInterface
+        fun showToast(message: String) {
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -153,5 +194,10 @@ class MainActivity : AppCompatActivity() {
             return
         }
         super.onBackPressed()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        backendExecutor.shutdownNow()
     }
 }

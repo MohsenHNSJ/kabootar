@@ -39,7 +39,7 @@ def main() -> None:
     try:
         import webview  # type: ignore
 
-        webview.create_window(f"{meta.app_name} Client", url, width=1180, height=860)
+        webview.create_window(meta.app_name, url, width=1180, height=860)
         webview.start()
     except Exception as exc:
         record_event("desktop_webview_fallback", level="warning", error=str(exc), url=url)

@@ -10,6 +10,7 @@ exclude = [
   "client/android/app/build",
   "client/dist",
   "client/build/kabootar-client",
+  "client/vendor",
 ]
 
 [tool.ruff.lint]

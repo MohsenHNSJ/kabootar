@@ -1,4 +1,4 @@
-# Kabootar Server Guide
+# Kabootar DNS Guide
 
 This file is only about the server side.
 The server has no frontend and no desktop build. Its main job is to run the DNS bridge and serve channel data to clients.

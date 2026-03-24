@@ -93,7 +93,7 @@ def all_settings() -> dict[str, str]:
 def apply_sync_cron(minutes: int) -> tuple[bool, str]:
     minutes = max(1, min(59, int(minutes)))
     # Desktop Windows build runs its own in-process sync loop and does not use cron.
-    if os.name == "nt":
+    if os.name == "nt" or (os.getenv("KABOOTAR_PLATFORM", "") or "").strip().lower() == "android":
         return True, ""
 
     try:

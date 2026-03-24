@@ -1,4 +1,4 @@
-# Kabootar Client Build Guide
+# Kabootar Build Guide
 
 This file is only about building and running the client side.
 If you want the full project overview, start from the root README.
@@ -30,7 +30,7 @@ build\windows\build_client.bat
 
 Output:
 
-- `dist\kabootar-client.exe`
+- `dist\kabootar.exe`
 
 ## Linux
 
@@ -40,7 +40,7 @@ bash build/linux/build_client.sh
 
 Output:
 
-- `dist/kabootar-client-linux-x64.tar.gz`
+- `dist/kabootar-linux-x64.tar.gz`
 
 ## macOS
 
@@ -50,7 +50,7 @@ bash build/macos/build_client.sh
 
 Output:
 
-- `dist/kabootar-client-macos.zip`
+- `dist/kabootar-macos.zip`
 
 ## Android
 
@@ -68,7 +68,7 @@ build\android\build_android.bat
 Outputs:
 
 - `android/app/build/outputs/apk/debug/app-debug.apk`
-- `android/app/build/outputs/apk/release/kabootar-client-android-universal.apk`
+- `android/app/build/outputs/apk/release/kabootar-android-universal.apk`
 
 ## Notes
 

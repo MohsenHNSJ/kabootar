@@ -11,8 +11,6 @@ if command -v python3 >/dev/null 2>&1; then
 fi
 
 cd android
-
-START_URL="${START_URL:-http://10.0.2.2:18765}"
 GRADLE_CMD=""
 
 if command -v gradle >/dev/null 2>&1; then
@@ -34,13 +32,13 @@ else
   GRADLE_CMD="${GRADLE_BIN}"
 fi
 
-"${GRADLE_CMD}" :app:clean :app:assembleDebug :app:assembleRelease -PstartUrl="${START_URL}"
+"${GRADLE_CMD}" :app:clean :app:assembleDebug :app:assembleRelease
 
 RELEASE_DIR="app/build/outputs/apk/release"
 UNIVERSAL_SOURCE="${RELEASE_DIR}/app-universal-release.apk"
 [[ -f "${UNIVERSAL_SOURCE}" ]] || UNIVERSAL_SOURCE="${RELEASE_DIR}/app-release.apk"
 ARM64_SOURCE="${RELEASE_DIR}/app-arm64-v8a-release.apk"
-ARMV7_SOURCE="${RELEASE_DIR}/app-armeabi-v7a-release.apk"
+X64_SOURCE="${RELEASE_DIR}/app-x86_64-release.apk"
 
 if [[ ! -f "${UNIVERSAL_SOURCE}" ]]; then
   echo "ERROR: universal release APK not found" >&2
@@ -50,15 +48,15 @@ if [[ ! -f "${ARM64_SOURCE}" ]]; then
   echo "ERROR: arm64-v8a release APK not found" >&2
   exit 1
 fi
-if [[ ! -f "${ARMV7_SOURCE}" ]]; then
-  echo "ERROR: armeabi-v7a release APK not found" >&2
+if [[ ! -f "${X64_SOURCE}" ]]; then
+  echo "ERROR: x86_64 release APK not found" >&2
   exit 1
 fi
-cp -f "${UNIVERSAL_SOURCE}" "${RELEASE_DIR}/kabootar-client-android-universal.apk"
-cp -f "${ARM64_SOURCE}" "${RELEASE_DIR}/kabootar-client-android-arm64-v8a.apk"
-cp -f "${ARMV7_SOURCE}" "${RELEASE_DIR}/kabootar-client-android-armeabi-v7a.apk"
+cp -f "${UNIVERSAL_SOURCE}" "${RELEASE_DIR}/kabootar-android-universal.apk"
+cp -f "${ARM64_SOURCE}" "${RELEASE_DIR}/kabootar-android-arm64-v8a.apk"
+cp -f "${X64_SOURCE}" "${RELEASE_DIR}/kabootar-android-x86_64.apk"
 
 echo "Debug APK: app/build/outputs/apk/debug/app-debug.apk"
-echo "Universal APK: ${RELEASE_DIR}/kabootar-client-android-universal.apk"
-echo "ARM64 APK: ${RELEASE_DIR}/kabootar-client-android-arm64-v8a.apk"
-echo "ARMv7 APK: ${RELEASE_DIR}/kabootar-client-android-armeabi-v7a.apk"
+echo "Universal APK: ${RELEASE_DIR}/kabootar-android-universal.apk"
+echo "ARM64 APK: ${RELEASE_DIR}/kabootar-android-arm64-v8a.apk"
+echo "x86_64 APK: ${RELEASE_DIR}/kabootar-android-x86_64.apk"

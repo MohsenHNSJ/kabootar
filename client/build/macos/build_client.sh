@@ -28,7 +28,7 @@ python3 -m PyInstaller \
   --noconfirm \
   --clean \
   --windowed \
-  --name kabootar-client \
+  --name kabootar \
   --icon build/macos/kabootar.icns \
   --add-data "../version.properties:." \
   --add-data "frontend/templates:frontend/templates" \
@@ -36,8 +36,8 @@ python3 -m PyInstaller \
   --add-data "alembic:alembic" \
   desktop_client.py
 
-rm -f dist/kabootar-client-macos.zip
-ditto -c -k --sequesterRsrc --keepParent dist/kabootar-client.app dist/kabootar-client-macos.zip
+rm -f dist/kabootar-macos.zip
+ditto -c -k --sequesterRsrc --keepParent dist/kabootar.app dist/kabootar-macos.zip
 
 echo
-echo "Build finished: dist/kabootar-client-macos.zip"
+echo "Build finished: dist/kabootar-macos.zip"
