@@ -42,7 +42,7 @@ That is the point of the project: not elegance for its own sake, but getting imp
   | client        | ----------> | resolver        | ----------> | server        |
   | web + sync    | <---------- | system/public   | <---------- | DNS bridge    |
   | local SQLite  |   TXT data  '-----------------'   TXT data  | + channel pull|
-  '---------------'                                                 '---------------'
+  '---------------'                                             '---------------'
           |                                                                  |
           | direct mode                                                      | fetch / refresh
           v                                                                  v
