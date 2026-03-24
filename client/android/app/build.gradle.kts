@@ -22,10 +22,13 @@ val releaseChannel = (versionProps.getProperty("release_channel") ?: "stable").t
 val androidBackendPort = ((project.findProperty("kabootarLocalPort") as String?)?.trim()?.toIntOrNull()
     ?: System.getenv("KABOOTAR_LOCAL_PORT")?.trim()?.toIntOrNull()
     ?: 18765).coerceIn(1024, 65535)
-val buildPythonCommand = if (System.getProperty("os.name").lowercase().contains("windows")) {
+val buildPythonOverride = (System.getenv("KABOOTAR_BUILD_PYTHON") ?: "").trim()
+val buildPythonCommand = if (buildPythonOverride.isNotBlank()) {
+    listOf(buildPythonOverride)
+} else if (System.getProperty("os.name").lowercase().contains("windows")) {
     listOf("py", "-3.13")
 } else {
-    listOf("python3")
+    listOf("python")
 }
 
 val releaseKeystoreFile = ((project.findProperty("kabootarKeystoreFile") as String?)?.trim() ?: System.getenv("KABOOTAR_KEYSTORE_FILE")?.trim()).orEmpty()
