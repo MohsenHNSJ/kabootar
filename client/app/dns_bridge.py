@@ -79,6 +79,7 @@ def _text_message_weight(message: dict) -> int:
         + _utf8_len(message.get("text", ""))
         + _utf8_len(message.get("reply_author", ""))
         + _utf8_len(message.get("reply_text", ""))
+        + _utf8_len(message.get("forward_source", ""))
     )
 
 
@@ -149,6 +150,7 @@ def _upsert_text_message(db, channel_id: int, message: dict) -> bool:
     reply_to_message_id = int(message.get("reply_to_message_id") or 0) or None
     reply_author = message.get("reply_author", "") or ""
     reply_text = message.get("reply_text", "") or ""
+    forward_source = message.get("forward_source", "") or ""
 
     existing = db.scalar(select(Message).where(Message.channel_id == channel_id, Message.message_id == msg_id))
     if existing:
@@ -171,6 +173,9 @@ def _upsert_text_message(db, channel_id: int, message: dict) -> bool:
         if existing.reply_text != reply_text:
             existing.reply_text = reply_text
             changed = True
+        if existing.forward_source != forward_source:
+            existing.forward_source = forward_source
+            changed = True
         return changed
 
     db.add(
@@ -185,6 +190,7 @@ def _upsert_text_message(db, channel_id: int, message: dict) -> bool:
             reply_to_message_id=reply_to_message_id,
             reply_author=reply_author,
             reply_text=reply_text,
+            forward_source=forward_source,
         )
     )
     return True
@@ -313,6 +319,7 @@ class BridgeCache:
                         "reply_to_message_id": int(m.get("reply_to_message_id") or 0) or None,
                         "reply_author": m.get("reply_author", "") or "",
                         "reply_text": m.get("reply_text", "") or "",
+                        "forward_source": m.get("forward_source", "") or "",
                     }
                 )
             payload_obj = {
@@ -1641,6 +1648,7 @@ def _sync_legacy_channel(
                 "reply_to_message_id": int(m.get("reply_to_message_id") or 0) or None,
                 "reply_author": m.get("reply_author", "") or "",
                 "reply_text": m.get("reply_text", "") or "",
+                "forward_source": m.get("forward_source", "") or "",
             }
             for m in raw_messages
         ],

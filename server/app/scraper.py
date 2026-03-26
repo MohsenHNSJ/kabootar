@@ -67,6 +67,23 @@ def _inner_html(element_html: str) -> str:
     return element_html[start + 1 : end]
 
 
+def _extract_forward_source(block: str) -> str:
+    forward_html = _extract_element_html(block, "tgme_widget_message_forwarded_from", tags=("a", "div"))
+    if not forward_html:
+        return ""
+
+    source_html = _extract_element_html(
+        forward_html,
+        "tgme_widget_message_forwarded_from_name",
+        tags=("a", "span", "div"),
+    )
+    if source_html:
+        return strip_tags(_inner_html(source_html))
+
+    forward_text = strip_tags(_inner_html(forward_html) or forward_html)
+    return re.sub(r"^\s*forwarded from\s+", "", forward_text, flags=re.I).strip()
+
+
 def parse_channel_meta(html: str) -> dict:
     title = ""
     avatar_url = ""
@@ -121,6 +138,7 @@ def _parse_message_block(block: str) -> Optional[dict]:
     reply_to_message_id: int | None = None
     reply_author = ""
     reply_text = ""
+    forward_source = _extract_forward_source(block)
     reply_html = _extract_element_html(block, "tgme_widget_message_reply", tags=("a", "div"))
     if reply_html:
         reply_tag = reply_html.split(">", 1)[0]
@@ -153,6 +171,7 @@ def _parse_message_block(block: str) -> Optional[dict]:
         "reply_to_message_id": reply_to_message_id,
         "reply_author": reply_author,
         "reply_text": reply_text,
+        "forward_source": forward_source,
         "post": post,
     }
 

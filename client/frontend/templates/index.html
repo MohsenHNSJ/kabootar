@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title data-i18n="index.page_title">Kabootar</title>
   <link rel="icon" type="image/svg+xml" href="/static/kabootar.svg" />
-  <link rel="stylesheet" href="/static/style.css?v=20260326e" />
+  <link rel="stylesheet" href="/static/style.css?v=20260326f" />
 </head>
 <body>
   <div class="layout">
@@ -184,6 +184,12 @@
         {% endif %}
         {% for m in messages %}
         <div class="msg" id="msg-{{ m.message_id }}" data-message-id="{{ m.message_id }}">
+          {% if m.forward_source %}
+          <div class="forward-block">
+            <span class="forward-label" data-i18n="index.forwarded_from">Forwarded from</span>
+            <span class="forward-source" dir="auto">{{ m.forward_source }}</span>
+          </div>
+          {% endif %}
           {% if m.reply_to_message_id or m.reply_author or m.reply_text %}
           {% if m.reply_to_message_id %}
           <a class="reply-block" href="#msg-{{ m.reply_to_message_id }}">
@@ -350,6 +356,6 @@
     </div>
   </div>
 
-  <script type="module" src="/static/index.js?v=20260326e"></script>
+  <script type="module" src="/static/index.js?v=20260326f"></script>
 </body>
 </html>

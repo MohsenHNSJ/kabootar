@@ -363,19 +363,23 @@ class MirrorApp {
                 const textEl = row.querySelector('.text');
                 const replyTextEl = row.querySelector('.reply-text');
                 const replyAuthorEl = row.querySelector('.reply-author');
+                const forwardSourceEl = row.querySelector('.forward-source');
                 const text = textEl?.textContent || '';
                 const replyText = replyTextEl?.textContent || '';
                 const replyAuthor = replyAuthorEl?.textContent || '';
-                const blob = `${text}\n${replyText}\n${replyAuthor}`.toLocaleLowerCase();
+                const forwardSource = forwardSourceEl?.textContent || '';
+                const blob = `${text}\n${replyText}\n${replyAuthor}\n${forwardSource}`.toLocaleLowerCase();
                 const matched = !queryLower || blob.includes(queryLower);
                 row.hidden = !matched;
                 restoreText(textEl);
                 restoreText(replyTextEl);
                 restoreText(replyAuthorEl);
+                restoreText(forwardSourceEl);
                 if (matched && queryLower) {
                     highlightText(textEl, query);
                     highlightText(replyTextEl, query);
                     highlightText(replyAuthorEl, query);
+                    highlightText(forwardSourceEl, query);
                 }
                 if (matched) {
                     visible += 1;

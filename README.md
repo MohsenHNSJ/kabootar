@@ -64,8 +64,11 @@ In direct mode, the client skips the server and talks to Telegram on its own.
 These links point to the main GitHub repository release channel.
 
 - [Latest release page](https://github.com/ppouria/kabootar/releases/latest)
-- [Windows AMD64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-amd64.exe)
-- [Linux x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-linux-x64.tar.gz)
+- [Windows x86](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-x86.exe)
+- [Windows x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-x64.exe)
+- [Windows ARM64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-arm64.exe)
+- [Linux x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-linux-x64)
+- [Linux ARM64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-linux-arm64)
 - [macOS](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-macos.zip)
 - [Android universal APK](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-android-universal.apk)
 

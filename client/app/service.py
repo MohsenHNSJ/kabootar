@@ -91,6 +91,7 @@ def _direct_text_weight(item: dict) -> int:
         + _utf8_len(item.get("text", ""))
         + _utf8_len(item.get("reply_author", ""))
         + _utf8_len(item.get("reply_text", ""))
+        + _utf8_len(item.get("forward_source", ""))
     )
 
 
@@ -294,6 +295,7 @@ def _sync_once_impl(progress: ProgressCallback = None, force_server_refresh: boo
                     reply_to_message_id = item.get('reply_to_message_id')
                     reply_author = item.get('reply_author', '') or ''
                     reply_text = item.get('reply_text', '') or ''
+                    forward_source = item.get('forward_source', '') or ''
 
                     changed = False
                     if existing:
@@ -315,6 +317,9 @@ def _sync_once_impl(progress: ProgressCallback = None, force_server_refresh: boo
                         if existing.reply_text != reply_text:
                             existing.reply_text = reply_text
                             changed = True
+                        if existing.forward_source != forward_source:
+                            existing.forward_source = forward_source
+                            changed = True
                     else:
                         db.add(
                             Message(
@@ -328,6 +333,7 @@ def _sync_once_impl(progress: ProgressCallback = None, force_server_refresh: boo
                                 reply_to_message_id=reply_to_message_id,
                                 reply_author=reply_author,
                                 reply_text=reply_text,
+                                forward_source=forward_source,
                             )
                         )
                         changed = True
@@ -409,6 +415,7 @@ def _sync_once_impl(progress: ProgressCallback = None, force_server_refresh: boo
                                 reply_to_message_id=item.get('reply_to_message_id'),
                                 reply_author=item.get('reply_author', '') or '',
                                 reply_text=item.get('reply_text', '') or '',
+                                forward_source=item.get('forward_source', '') or '',
                             )
                         )
                         changed = True

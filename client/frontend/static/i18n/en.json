@@ -18,6 +18,7 @@
   "index.no_message_results": "No matching messages.",
   "index.today": "Today",
   "index.yesterday": "Yesterday",
+  "index.forwarded_from": "Forwarded from",
   "index.no_channels": "No channels yet. Add your first channel.",
   "index.open_channels": "Open channels",
   "index.no_channel_selected": "No channel selected",

@@ -1,8 +1,8 @@
-const CACHE_NAME = 'kabootar-static-v11';
+const CACHE_NAME = 'kabootar-static-v12';
 const STATIC_ASSETS = [
-  '/static/style.css?v=20260326e',
+  '/static/style.css?v=20260326f',
   '/static/settings.css?v=20260322c',
-  '/static/index.js?v=20260326e',
+  '/static/index.js?v=20260326f',
   '/static/settings.js?v=20260322c',
   '/static/i18n/en.json',
   '/static/i18n/fa.json',

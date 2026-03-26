@@ -40,7 +40,7 @@ bash build/linux/build_client.sh
 
 Output:
 
-- `dist/kabootar-linux-x64.tar.gz`
+- `dist/kabootar-linux-x64`
 
 ## macOS
 

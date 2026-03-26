@@ -66,8 +66,11 @@
 این لینک ها مستقیم به آخرین ریلیز وصل میشوند.
 
 - [صفحه آخرین ریلیز](https://github.com/ppouria/kabootar/releases/latest)
-- [نسخه ویندوز AMD64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-amd64.exe)
-- [نسخه لینوکس x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-linux-x64.tar.gz)
+- [نسخه ویندوز x86](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-x86.exe)
+- [نسخه ویندوز x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-x64.exe)
+- [نسخه ویندوز ARM64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-windows-arm64.exe)
+- [نسخه لینوکس x64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-linux-x64)
+- [نسخه لینوکس ARM64](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-linux-arm64)
 - [نسخه macOS](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-macos.zip)
 - [نسخه اندروید universal](https://github.com/ppouria/kabootar/releases/latest/download/kabootar-android-universal.apk)
 

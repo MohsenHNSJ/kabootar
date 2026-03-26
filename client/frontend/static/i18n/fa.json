@@ -18,6 +18,7 @@
   "index.no_message_results": "پیامی با این عبارت پیدا نشد.",
   "index.today": "امروز",
   "index.yesterday": "دیروز",
+  "index.forwarded_from": "فوروارد شده از",
   "index.no_channels": "هنوز کانالی اضافه نشده است. اولین کانال را اضافه کنید.",
   "index.open_channels": "نمایش کانال‌ها",
   "index.no_channel_selected": "کانالی انتخاب نشده است",

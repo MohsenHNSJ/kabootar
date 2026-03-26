@@ -67,6 +67,7 @@ def _text_message_weight(message: dict) -> int:
         + _utf8_len(message.get("text", ""))
         + _utf8_len(message.get("reply_author", ""))
         + _utf8_len(message.get("reply_text", ""))
+        + _utf8_len(message.get("forward_source", ""))
     )
 
 
@@ -278,6 +279,7 @@ class BridgeCache:
                         "reply_to_message_id": int(m.get("reply_to_message_id") or 0) or None,
                         "reply_author": m.get("reply_author", "") or "",
                         "reply_text": m.get("reply_text", "") or "",
+                        "forward_source": m.get("forward_source", "") or "",
                     }
                 )
 
@@ -291,6 +293,7 @@ class BridgeCache:
                     "reply_to_message_id": int(m.get("reply_to_message_id") or 0) or None,
                     "reply_author": m.get("reply_author", "") or "",
                     "reply_text": m.get("reply_text", "") or "",
+                    "forward_source": m.get("forward_source", "") or "",
                 }
                 for m in messages_payload
             ]

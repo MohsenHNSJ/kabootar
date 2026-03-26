@@ -36,13 +36,8 @@ python3 -m PyInstaller \
   --add-data "alembic:alembic" \
   desktop_client.py
 
-stage_dir="dist/kabootar-linux-x64"
-rm -rf "$stage_dir"
-mkdir -p "$stage_dir"
-cp dist/kabootar "$stage_dir/"
-cp build/assets/kabootar.svg "$stage_dir/"
-cp README.md "$stage_dir/"
-tar -C dist -czf dist/kabootar-linux-x64.tar.gz kabootar-linux-x64
+cp dist/kabootar dist/kabootar-linux-x64
+chmod +x dist/kabootar-linux-x64
 
 echo
-echo "Build finished: dist/kabootar-linux-x64.tar.gz"
+echo "Build finished: dist/kabootar-linux-x64"

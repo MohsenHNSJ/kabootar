@@ -37,6 +37,7 @@ class Message(Base):
     reply_to_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
     reply_author: Mapped[str] = mapped_column(String(255), default="")
     reply_text: Mapped[str] = mapped_column(Text, default="")
+    forward_source: Mapped[str] = mapped_column(String(255), default="")
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

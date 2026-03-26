@@ -44,3 +44,5 @@ def ensure_schema() -> None:
                 conn.execute(text("ALTER TABLE messages ADD COLUMN reply_author VARCHAR(255) NOT NULL DEFAULT ''"))
             if "reply_text" not in msg_cols:
                 conn.execute(text("ALTER TABLE messages ADD COLUMN reply_text TEXT NOT NULL DEFAULT ''"))
+            if "forward_source" not in msg_cols:
+                conn.execute(text("ALTER TABLE messages ADD COLUMN forward_source VARCHAR(255) NOT NULL DEFAULT ''"))
