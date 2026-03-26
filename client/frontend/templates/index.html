@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title data-i18n="index.page_title">Kabootar</title>
   <link rel="icon" type="image/svg+xml" href="/static/kabootar.svg" />
-  <link rel="stylesheet" href="/static/style.css?v=20260324b" />
+  <link rel="stylesheet" href="/static/style.css?v=20260326d" />
 </head>
 <body>
   <div class="layout">
@@ -16,10 +16,24 @@
           <div class="sidebar-title" data-i18n="index.channels_title">Channels</div>
         </div>
         <div class="sidebar-actions">
+          <button type="button" class="lite-btn" id="channelSearchToggle" data-i18n-title="index.search_channels" aria-label="Search channels">&#128269;</button>
           <button type="button" class="lite-btn" id="syncNowBtn" data-i18n-title="index.update_now" title="Update now">↻</button>
           <a class="lite-btn" href="/settings" data-i18n-title="index.settings" title="Settings">⚙</a>
           <button class="lite-btn" id="liteBtn" data-i18n="index.lite_mode" data-i18n-title="index.lite_mode" title="Lite mode">Lite</button>
           <button class="lite-btn" id="langToggle" data-i18n-title="common.change_language" title="Change language">FA</button>
+        </div>
+      </div>
+      <div class="sidebar-search-row" id="channelSearchRow" hidden>
+        <div class="sidebar-search-shell">
+          <input
+            type="text"
+            class="sidebar-search-input"
+            id="channelSearchInput"
+            data-i18n-placeholder="index.search_channels"
+            placeholder="Search channels"
+            autocomplete="off"
+            spellcheck="false"
+          />
         </div>
       </div>
       <div class="sidebar-add-box">
@@ -39,6 +53,7 @@
         <div class="sidebar-add-hint" data-i18n="index.add_domain_first">Add a domain first to use DNS mode.</div>
         {% endif %}
       </div>
+      <div class="sidebar-search-empty" id="channelSearchEmpty" hidden data-i18n="index.no_search_results">No matching channels.</div>
       {% if not channels %}
       <div class="sidebar-empty" data-i18n="{% if source_mode == 'dns' and dns_domains_count == 0 %}index.empty_desc_domain_first{% else %}index.no_channels{% endif %}">
         {% if source_mode == 'dns' and dns_domains_count == 0 %}
@@ -55,6 +70,7 @@
         href="/?channel={{ ch.source_url }}"
         data-channel-key="{{ ch.source_url }}"
         data-latest-id="{{ latest_id }}"
+        data-search-text="{{ ((ch.title or ('@' ~ ch.username)) ~ ' ' ~ ch.source_url ~ ' @' ~ ch.username) | lower }}"
       >
         {% if ch.avatar_url %}
         <img class="avatar" src="{{ ch.avatar_url }}" alt="{{ ch.title or ch.username }}" loading="lazy" referrerpolicy="no-referrer" />
@@ -97,10 +113,43 @@
           <div class="header-sub" data-i18n="index.no_channel_selected_sub">Add a channel to start syncing.</div>
         </div>
         {% endif %}
+        <div class="header-actions">
+          <button
+            type="button"
+            class="lite-btn search-toggle-btn"
+            id="messageSearchToggle"
+            data-i18n-title="index.search_messages"
+            aria-label="Search messages"
+            {% if not selected_channel or not messages %}disabled{% endif %}
+          >&#128269;</button>
+        </div>
+      </div>
+      <div class="message-search-bar" id="messageSearchBar" hidden>
+        <div class="message-search-shell">
+          <input
+            type="search"
+            class="message-search-input"
+            id="messageSearchInput"
+            data-i18n-placeholder="index.search_messages"
+            placeholder="Search messages"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button
+            type="button"
+            class="message-search-clear"
+            id="messageSearchClear"
+            data-i18n-title="index.clear_search"
+            title="Clear search"
+            hidden
+          >×</button>
+        </div>
+        <button type="button" class="lite-btn message-search-close" id="messageSearchClose" data-i18n="common.close">Close</button>
       </div>
       {% if ui_msg %}
       <div class="top-msg">{{ ui_msg }}</div>
       {% endif %}
+      <div class="message-search-empty" id="messageSearchEmpty" hidden data-i18n="index.no_message_results">No matching messages.</div>
 
       <div class="messages" id="messages">
         {% if not channels %}
@@ -301,6 +350,6 @@
     </div>
   </div>
 
-  <script type="module" src="/static/index.js?v=20260324a"></script>
+  <script type="module" src="/static/index.js?v=20260326d"></script>
 </body>
 </html>

@@ -13,6 +13,7 @@
 }
 
 *{box-sizing:border-box}
+[hidden]{display:none !important}
 html,body{height:100%}
 body{
   margin:0;
@@ -72,6 +73,26 @@ body{
   background:transparent;
 }
 .sidebar-actions{display:flex;gap:6px;align-items:center}
+.sidebar-search-row{padding:0 12px 10px;position:sticky;top:58px;background:linear-gradient(180deg,rgba(19,33,48,.98) 80%, rgba(19,33,48,.8) 100%);backdrop-filter:blur(4px);z-index:2}
+.sidebar-search-shell{position:relative}
+.sidebar-search-input{
+  width:100%;
+  background:#0c1721;
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  padding:9px 12px;
+  font-size:13px;
+  outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.sidebar-search-input::placeholder{color:var(--muted)}
+.sidebar-search-input:focus{
+  border-color:rgba(56,189,248,.5);
+  box-shadow:0 0 0 3px rgba(56,189,248,.12);
+  background:#0d1a25;
+}
+.sidebar-search-empty{padding:10px 14px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}
 
 .add-input{
   width:100%;
@@ -245,6 +266,18 @@ body{
   align-items:center;
   gap:10px;
 }
+.header-meta{min-width:0;flex:1}
+.header-actions{margin-inline-start:auto;display:flex;align-items:center;gap:8px}
+.search-toggle-btn{
+  min-width:38px;
+  height:38px;
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  line-height:1;
+}
 
 .header-avatar{
   width:38px;
@@ -259,6 +292,53 @@ body{
 }
 .header-title{font-weight:800}
 .header-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70vw}
+.message-search-bar{
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(12,23,34,.98),rgba(12,23,34,.88));
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.message-search-shell{position:relative;flex:1}
+.message-search-input{
+  width:100%;
+  background:#0c1721;
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  padding:9px 38px 9px 12px;
+  font-size:13px;
+  outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.message-search-input::placeholder{color:var(--muted)}
+.message-search-input:focus{
+  border-color:rgba(56,189,248,.5);
+  box-shadow:0 0 0 3px rgba(56,189,248,.12);
+  background:#0d1a25;
+}
+.message-search-clear{
+  position:absolute;
+  top:50%;
+  right:8px;
+  transform:translateY(-50%);
+  width:24px;
+  height:24px;
+  border:0;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  color:var(--muted);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  line-height:1;
+}
+.message-search-clear:hover{color:#fff;background:rgba(56,189,248,.18)}
+.message-search-close{flex:0 0 auto}
+.message-search-empty{padding:10px 14px;color:var(--muted);font-size:12px;border-bottom:1px solid var(--border)}
 .top-msg{padding:8px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px}
 
 .messages{
@@ -333,6 +413,14 @@ body{
 
 .text{white-space:pre-wrap;word-break:break-word;font-size:15px;line-height:1.5}
 .meta{color:var(--muted);font-size:12px;margin-top:8px;display:flex;justify-content:flex-end;gap:10px}
+.msg mark,
+.reply-text mark,
+.reply-author mark{
+  background:rgba(56,189,248,.18);
+  color:#fff;
+  border-radius:4px;
+  padding:0 .08em;
+}
 
 .empty-state{
   margin:auto;
@@ -448,6 +536,9 @@ html[dir="rtl"] .meta{justify-content:flex-start}
 html[dir="rtl"] .sidebar-title-row,
 html[dir="rtl"] .chat-header{direction:rtl}
 html[dir="rtl"] .image-viewer-close{right:auto;left:12px}
+html[dir="rtl"] .sidebar-search-input{padding:9px 12px}
+html[dir="rtl"] .message-search-input{padding:9px 12px 9px 38px}
+html[dir="rtl"] .message-search-clear{right:auto;left:8px}
 
 @media (max-width:900px){
   .mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center}
@@ -464,6 +555,7 @@ html[dir="rtl"] .image-viewer-close{right:auto;left:12px}
   .sidebar.open{left:0}
   .chat{width:100%}
   .chat-header{padding:10px 12px}
+  .message-search-bar{padding:10px 12px;gap:8px}
   .sync-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sync-current-line{flex-direction:column;align-items:flex-start}
   .sync-current-line strong{max-width:100%}
