@@ -675,7 +675,7 @@ class BridgeResolver(BaseResolver):
 
 def run_dns_bridge_server() -> None:
     meta = app_meta()
-    domain = get_setting("dns_domain", "t.example.com") or "t.example.com"
+    domain = get_setting("dns_domain", "d.pacman230.eu.cc") or "d.pacman230.eu.cc"
     port = int(get_setting("dns_port", "5533") or 5533)
     cfg = BridgeConfig(domain=domain, port=port)
     cache = BridgeCache(cfg)

@@ -4,7 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     DATABASE_URL=sqlite:///./data/app.db \
-    DNS_DOMAIN=t.example.com \
+    DNS_DOMAIN=d.pacman230.eu.cc \
     DNS_PORT=5533
 
 WORKDIR /app

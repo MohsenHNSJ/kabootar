@@ -17,7 +17,7 @@ DEFAULTS: dict[str, str] = {
     # Channels/proxies used by DNS bridge to fetch Telegram data.
     "telegram_channels": os.getenv("TELEGRAM_CHANNELS", ""),
     "telegram_proxies": os.getenv("TELEGRAM_PROXIES", ""),
-    "dns_domain": os.getenv("DNS_DOMAIN", "t.example.com"),
+    "dns_domain": os.getenv("DNS_DOMAIN", "d.pacman230.eu.cc"),
     "dns_port": os.getenv("DNS_PORT", "5533"),
 }
 
